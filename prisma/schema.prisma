@@ -1,0 +1,254 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+enum UserRole {
+  PARTICIPANT
+  ADMIN
+}
+
+enum UserStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  SUSPENDED
+}
+
+enum BookingStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED
+  COMPLETED
+}
+
+enum ExamSessionStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  COMPLETED
+  EXPIRED
+  ABANDONED
+}
+
+enum NotificationType {
+  INFO
+  BOOKING
+  EXAM
+  CERTIFICATE
+  REMINDER
+}
+
+model User {
+  id               String         @id @default(cuid())
+  email            String         @unique
+  password         String
+  fullName         String
+  mobile           String
+  companyName      String
+  jobTitle         String
+  role             UserRole       @default(PARTICIPANT)
+  status           UserStatus     @default(PENDING)
+  locale           String         @default("en")
+  profilePhoto     String?
+  lastLoginAt      DateTime?
+  notifyEmail      Boolean        @default(true)
+  notifySms        Boolean        @default(false)
+  twoFactorEnabled Boolean        @default(false)
+  lastExamAt       DateTime?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  bookings         Booking[]
+  examSessions     ExamSession[]
+  examResults      ExamResult[]
+  certificates     Certificate[]
+  notifications    Notification[]
+  resetTokens      PasswordResetToken[]
+  activityLogs     ActivityLog[]
+  loginHistories   LoginHistory[]
+}
+
+model ActivityLog {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  action    String
+  details   String?
+  ipAddress String?
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+model LoginHistory {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
+
+model Question {
+  id            String   @id @default(cuid())
+  level         Int
+  category      String
+  textEn        String
+  textAr        String
+  optionAEn     String
+  optionAAr     String
+  optionBEn     String
+  optionBAr     String
+  optionCEn     String
+  optionCAr     String
+  optionDEn     String
+  optionDAr     String
+  correctAnswer String
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([level, isActive])
+  @@index([category])
+}
+
+model ExamSlot {
+  id              String    @id @default(cuid())
+  date            DateTime
+  startTime       String
+  endTime         String
+  maxParticipants Int       @default(20)
+  isActive        Boolean   @default(true)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  bookings        Booking[]
+}
+
+model Booking {
+  id           String        @id @default(cuid())
+  userId       String
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  examSlotId   String
+  examSlot     ExamSlot      @relation(fields: [examSlotId], references: [id], onDelete: Cascade)
+  status       BookingStatus @default(PENDING)
+  examLink     String?
+  examLinkSent Boolean       @default(false)
+  reminderSent Boolean       @default(false)
+  approvedAt   DateTime?
+  notes        String?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  examSessions ExamSession[]
+
+  @@index([userId])
+  @@index([examSlotId])
+  @@index([status])
+}
+
+model ExamSession {
+  id              String            @id @default(cuid())
+  userId          String
+  user            User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bookingId       String
+  booking         Booking           @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  status          ExamSessionStatus @default(NOT_STARTED)
+  questionIds     String
+  answers         String            @default("{}")
+  currentIndex    Int               @default(0)
+  timeLimit       Int               @default(3600)
+  startedAt       DateTime?
+  completedAt     DateTime?
+  tabSwitchCount  Int               @default(0)
+  activityLog     String            @default("[]")
+  secureToken     String            @unique
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  result          ExamResult?
+
+  @@index([userId])
+  @@index([bookingId])
+  @@index([secureToken])
+}
+
+model ExamResult {
+  id                  String       @id @default(cuid())
+  userId              String
+  user                User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  examSessionId       String       @unique
+  examSession         ExamSession  @relation(fields: [examSessionId], references: [id], onDelete: Cascade)
+  totalQuestions      Int
+  correctAnswers      Int
+  incorrectAnswers    Int
+  percentage          Float
+  competencyLevel     String
+  strengths           String
+  weaknesses          String
+  categoryPerformance String
+  createdAt           DateTime     @default(now())
+  certificate         Certificate?
+
+  @@index([userId])
+}
+
+model Certificate {
+  id              String     @id @default(cuid())
+  userId          String
+  user            User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  examResultId    String     @unique
+  examResult      ExamResult @relation(fields: [examResultId], references: [id], onDelete: Cascade)
+  verificationId  String     @unique
+  participantName String
+  examDate        DateTime
+  finalScore      Float
+  competencyLevel String
+  issuedAt        DateTime   @default(now())
+
+  @@index([verificationId])
+  @@index([userId])
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  message   String
+  type      NotificationType @default(INFO)
+  read      Boolean          @default(false)
+  createdAt DateTime         @default(now())
+
+  @@index([userId, read])
+}
+
+model CompetencyThreshold {
+  id              String   @id @default(cuid())
+  beginnerMax     Float    @default(49.99)
+  practitionerMin Float    @default(50)
+  practitionerMax Float    @default(69.99)
+  advancedMin     Float    @default(70)
+  advancedMax     Float    @default(84.99)
+  expertMin       Float    @default(85)
+  updatedAt       DateTime @updatedAt
+}
+
+model SystemSetting {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String
+  updatedAt DateTime @updatedAt
+}

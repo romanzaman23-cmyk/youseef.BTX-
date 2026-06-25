@@ -1,36 +1,106 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# BTX – Bin Tuwaym Excellence
+
+**Measuring Excellence in Food Safety Competency**
+
+A professional, full-stack food safety competency assessment platform with a public website, participant portal, and admin portal.
+
+## Features
+
+### Public Website
+- Home, About, Objectives, Target Audience, Contact
+- User Registration & Login with Forgot Password
+- Certificate Verification (QR code support)
+- English & Arabic with RTL support
+
+### Participant Portal
+- Dashboard with exam status, competency level, notifications
+- Exam booking system (3-month cooldown, admin approval)
+- Secure MCQ examination (timer, anti-cheating, auto-save)
+- Results with strengths/weaknesses analysis
+- PDF certificate download with verification ID
+
+### Admin Portal
+- Analytics dashboard with charts
+- Question bank management (400 questions, import/export)
+- User management (approve/reject/suspend)
+- Exam slot & booking management
+- Reports export (PDF & Excel)
+- Configurable competency thresholds
+
+## Brand Colors
+
+| Color | Hex |
+|-------|-----|
+| Primary | `#0F2744` |
+| Secondary | `#C9A227` |
+| Accent | `#00897B` |
+
+## Tech Stack
+
+- **Framework:** Next.js 16 (App Router)
+- **Language:** TypeScript
+- **Styling:** Tailwind CSS v4
+- **Database:** SQLite (dev) / PostgreSQL ready
+- **ORM:** Prisma 7
+- **Auth:** NextAuth.js v5
+- **i18n:** next-intl
+- **Charts:** Recharts
+- **PDF:** jsPDF + QRCode
 
 ## Getting Started
 
-First, run the development server:
-
 ```bash
+# Install dependencies
+npm install
+
+# Set up database and seed data
+npm run db:setup
+
+# Start development server
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Demo Accounts
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Role | Email | Password |
+|------|-------|----------|
+| Admin | admin@btx-excellence.com | Admin@123 |
+| Participant | demo@btx-excellence.com | Demo@123 |
 
-## Learn More
+## Project Structure
 
-To learn more about Next.js, take a look at the following resources:
+```
+src/
+├── app/
+│   ├── [locale]/
+│   │   ├── (public)/     # Public website pages
+│   │   ├── portal/       # Participant portal
+│   │   └── admin/        # Admin portal
+│   └── api/              # REST API routes
+├── components/           # UI components
+├── lib/                  # Utilities, auth, prisma
+├── i18n/                 # Internationalization config
+└── generated/prisma/     # Prisma client
+messages/                 # en.json, ar.json translations
+prisma/                   # Schema, migrations, seed
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Production Deployment
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+1. Set environment variables in `.env`:
+   ```
+   DATABASE_URL="postgresql://..."
+   AUTH_SECRET="your-secure-secret"
+   NEXTAUTH_URL="https://your-domain.com"
+   ```
 
-## Deploy on Vercel
+2. Run migrations: `npx prisma migrate deploy`
+3. Seed database: `npm run db:seed`
+4. Build: `npm run build`
+5. Start: `npm start`
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## License
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Proprietary – Bin Tuwaym Excellence
