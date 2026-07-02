@@ -1,0 +1,130 @@
+@import "tailwindcss";
+
+:root {
+  --btx-primary: #0F2744;
+  --btx-secondary: #C9A227;
+  --btx-accent: #00897B;
+  --background: #ffffff;
+  --foreground: #1a1a2e;
+  --muted: #f8f9fb;
+  --border: #e2e8f0;
+}
+
+@theme inline {
+  --color-btx-primary: var(--btx-primary);
+  --color-btx-secondary: var(--btx-secondary);
+  --color-btx-accent: var(--btx-accent);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-border: var(--border);
+  --font-sans: var(--font-inter);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-inter), system-ui, -apple-system, sans-serif;
+}
+
+[dir="rtl"] body {
+  font-family: "Segoe UI", Tahoma, Arial, sans-serif;
+}
+
+.gradient-primary {
+  background: linear-gradient(135deg, #0F2744 0%, #1a3a5c 50%, #0F2744 100%);
+}
+
+.gradient-gold {
+  background: linear-gradient(135deg, #C9A227 0%, #d4b84a 100%);
+}
+
+.text-gradient {
+  background: linear-gradient(135deg, #C9A227, #00897B);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.card-shadow {
+  box-shadow: 0 4px 24px rgba(15, 39, 68, 0.08);
+}
+
+.card-shadow-lg {
+  box-shadow: 0 8px 40px rgba(15, 39, 68, 0.12);
+}
+
+.btn-primary {
+  background: #0F2744;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.btn-primary:hover {
+  background: #1a3a5c;
+  transform: translateY(-1px);
+}
+
+.btn-secondary {
+  background: #C9A227;
+  color: #0F2744;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.btn-secondary:hover {
+  background: #d4b84a;
+  transform: translateY(-1px);
+}
+
+.btn-accent {
+  background: #00897B;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.btn-accent:hover {
+  background: #00796b;
+  transform: translateY(-1px);
+}
+
+.input-field {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  font-size: 0.95rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.input-field:focus {
+  outline: none;
+  border-color: #00897B;
+  box-shadow: 0 0 0 3px rgba(0, 137, 123, 0.15);
+}
+
+.section-padding {
+  padding: 5rem 0;
+}
+
+@media (max-width: 768px) {
+  .section-padding {
+    padding: 3rem 0;
+  }
+}

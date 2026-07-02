@@ -1,0 +1,66 @@
+export const BRAND = {
+  primary: "#0F2744",
+  secondary: "#C9A227",
+  accent: "#00897B",
+  name: "BTX",
+  fullName: "Bin Tuwaym Excellence",
+  tagline: "Measuring Excellence in Food Safety Competency",
+} as const;
+
+export const EXAM_CONFIG = {
+  questionsPerExam: 50,
+  timeLimitSeconds: 3600,
+  cooldownMonths: 3,
+  levels: {
+    1: { name: "Food Safety Fundamentals", questions: 100 },
+    2: { name: "Intermediate", questions: 100 },
+    3: { name: "Advanced", questions: 100 },
+    4: { name: "Expert", questions: 100 },
+  },
+} as const;
+
+export const TARGET_AUDIENCE = [
+  "Food Handlers",
+  "Food Production Employees",
+  "Food Safety Officers",
+  "Quality Assurance Officers",
+  "Quality Control Inspectors",
+  "Quality Managers",
+  "Food Safety Managers",
+  "HACCP Team Members",
+  "Internal Auditors",
+  "ISO 22000 Practitioners",
+  "Food Factory Employees",
+  "Restaurant Employees",
+  "Cafe Employees",
+  "Hotel Staff",
+  "Central Kitchen Employees",
+  "Catering Companies",
+  "Airline Catering Personnel",
+  "Retail Food Businesses",
+  "Supermarkets",
+  "Food Laboratory Personnel",
+  "Regulatory Inspectors",
+  "Government Food Authorities",
+  "Food Safety Consultants",
+  "Trainers",
+  "University Students",
+  "Fresh Graduates",
+  "Food Science Graduates",
+  "Human Nutrition Graduates",
+  "Public Health Professionals",
+  "Food Industry Professionals",
+] as const;
+
+export const QUESTION_CATEGORIES = [
+  "HACCP",
+  "Microbiology",
+  "Hygiene & Sanitation",
+  "Temperature Control",
+  "Allergen Management",
+  "Food Defense",
+  "Regulatory Compliance",
+  "Quality Management",
+  "Pest Control",
+  "Personal Hygiene",
+] as const;
