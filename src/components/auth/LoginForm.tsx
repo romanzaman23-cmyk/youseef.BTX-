@@ -2,15 +2,24 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { useTranslations, useLocale } from "next-intl";
 import { LogIn } from "lucide-react";
+import { PasswordInput } from "@/components/ui/PasswordInput";
+
+async function fetchSessionWithRetry(maxAttempts = 6) {
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    const sessionRes = await fetch("/api/auth/session", { cache: "no-store" });
+    const sessionData = await sessionRes.json();
+    if (sessionData?.user) return sessionData;
+    await new Promise((resolve) => setTimeout(resolve, 250));
+  }
+  return null;
+}
 
 export function LoginForm() {
   const t = useTranslations("auth");
   const locale = useLocale();
-  const router = useRouter();
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -20,28 +29,45 @@ export function LoginForm() {
     setError("");
 
     const form = new FormData(e.currentTarget);
-    const result = await signIn("credentials", {
-      email: form.get("email"),
-      password: form.get("password"),
-      redirect: false,
-    });
+    const email = String(form.get("email") ?? "").trim().toLowerCase();
+    const password = String(form.get("password") ?? "");
 
-    setLoading(false);
+    try {
+      const result = await signIn("credentials", {
+        email,
+        password,
+        redirect: false,
+      });
 
-    if (result?.error) {
-      setError("Invalid email or password");
-      return;
+      if (!result || result.error || result.ok === false) {
+        setLoading(false);
+        setError(
+          result?.error === "CredentialsSignin"
+            ? "Invalid email or password"
+            : result?.error?.includes("not active")
+              ? "Your account is not active. Contact admin for approval."
+              : "Login failed. Please check your email and password."
+        );
+        return;
+      }
+
+      const sessionData = await fetchSessionWithRetry();
+      if (!sessionData?.user) {
+        setLoading(false);
+        setError("Login failed: session could not be created. Please try again.");
+        return;
+      }
+
+      const destination =
+        sessionData.user.role === "ADMIN"
+          ? `/${locale}/admin/dashboard`
+          : `/${locale}/portal/dashboard`;
+
+      window.location.href = destination;
+    } catch {
+      setLoading(false);
+      setError("Network error. Please check your connection and try again.");
     }
-
-    const sessionRes = await fetch("/api/auth/session");
-    const sessionData = await sessionRes.json();
-    const destination =
-      sessionData?.user?.role === "ADMIN"
-        ? `/${locale}/admin/dashboard`
-        : `/${locale}/portal/dashboard`;
-
-    router.push(destination);
-    router.refresh();
   };
 
   return (
@@ -60,11 +86,11 @@ export function LoginForm() {
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">{t("email")}</label>
-          <input name="email" type="email" required className="input-field" />
+          <input name="email" type="email" required autoComplete="email" className="input-field" />
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">{t("password")}</label>
-          <input name="password" type="password" required className="input-field" />
+          <PasswordInput name="password" required autoComplete="current-password" />
         </div>
         <div className="text-right">
           <Link href={`/${locale}/forgot-password`} className="text-sm text-btx-accent hover:underline">

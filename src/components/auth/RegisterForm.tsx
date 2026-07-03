@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations, useLocale } from "next-intl";
 import { UserPlus } from "lucide-react";
+import { PasswordInput } from "@/components/ui/PasswordInput";
 
 export function RegisterForm() {
   const t = useTranslations("auth");
@@ -93,11 +94,11 @@ export function RegisterForm() {
         <div className="grid sm:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">{t("password")}</label>
-            <input name="password" type="password" required minLength={8} className="input-field" />
+            <PasswordInput name="password" required minLength={8} />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">{t("confirm_password")}</label>
-            <input name="confirmPassword" type="password" required className="input-field" />
+            <PasswordInput name="confirmPassword" required />
           </div>
         </div>
         <button type="submit" disabled={loading} className="btn-accent w-full">

@@ -259,11 +259,11 @@ export function ParticipantProfileClient({
             <h2 className="font-bold text-btx-primary flex items-center gap-2">
               <Lock className="w-5 h-5" /> {t("change_password")}
             </h2>
-            <input type="password" placeholder={t("current_password")} className="input-field"
+            <PasswordInput placeholder={t("current_password")}
               value={passwordForm.currentPassword} onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })} />
-            <input type="password" placeholder={t("new_password")} className="input-field"
+            <PasswordInput placeholder={t("new_password")}
               value={passwordForm.newPassword} onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })} />
-            <input type="password" placeholder={t("confirm_password")} className="input-field"
+            <PasswordInput placeholder={t("confirm_password")}
               value={passwordForm.confirmPassword} onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })} />
             <button onClick={changePassword} disabled={loading} className="btn-primary">{t("change_password")}</button>
           </div>

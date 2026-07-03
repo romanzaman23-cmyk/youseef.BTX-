@@ -16,8 +16,9 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
     const data = registerSchema.parse(body);
+    const email = data.email.trim().toLowerCase();
 
-    const existing = await prisma.user.findUnique({ where: { email: data.email } });
+    const existing = await prisma.user.findUnique({ where: { email } });
     if (existing) {
       return NextResponse.json({ error: "Email already registered" }, { status: 400 });
     }
@@ -27,7 +28,7 @@ export async function POST(request: Request) {
     await prisma.user.create({
       data: {
         fullName: data.fullName,
-        email: data.email,
+        email,
         mobile: data.mobile,
         companyName: data.companyName,
         jobTitle: data.jobTitle,

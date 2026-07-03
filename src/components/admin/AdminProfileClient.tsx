@@ -13,6 +13,7 @@ import {
   Save,
   Server,
 } from "lucide-react";
+import { PasswordInput } from "@/components/ui/PasswordInput";
 
 interface AdminProfileData {
   fullName: string;
@@ -135,11 +136,11 @@ export function AdminProfileClient({ profile }: { profile: AdminProfileData }) {
         <div className="space-y-6 max-w-2xl">
           <div className="bg-white rounded-xl p-6 card-shadow space-y-4">
             <h2 className="font-bold text-btx-primary flex items-center gap-2"><Lock className="w-5 h-5" /> {t("change_password")}</h2>
-            <input type="password" placeholder={t("current_password")} className="input-field" value={passwordForm.currentPassword}
+            <PasswordInput placeholder={t("current_password")} className="input-field" value={passwordForm.currentPassword}
               onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })} />
-            <input type="password" placeholder={t("new_password")} className="input-field" value={passwordForm.newPassword}
+            <PasswordInput placeholder={t("new_password")} className="input-field" value={passwordForm.newPassword}
               onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })} />
-            <input type="password" placeholder={t("confirm_password")} className="input-field" value={passwordForm.confirmPassword}
+            <PasswordInput placeholder={t("confirm_password")} className="input-field" value={passwordForm.confirmPassword}
               onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })} />
             <button onClick={changePassword} disabled={loading} className="btn-primary">{t("change_password")}</button>
           </div>
