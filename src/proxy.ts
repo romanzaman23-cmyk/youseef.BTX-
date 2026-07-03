@@ -9,7 +9,7 @@ const intlMiddleware = createMiddleware(routing);
 const protectedPaths = ["/portal", "/admin"];
 const adminPaths = ["/admin"];
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
   const locale = routing.locales.find((l) => pathname.startsWith(`/${l}`)) || "en";
   const pathWithoutLocale = pathname.replace(`/${locale}`, "") || "/";
