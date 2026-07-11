@@ -71,7 +71,11 @@ async function main() {
 
   await prisma.user.upsert({
     where: { email: "admin@btx-excellence.com" },
-    update: {},
+    update: {
+      password: adminPassword,
+      role: "ADMIN",
+      status: "APPROVED",
+    },
     create: {
       email: "admin@btx-excellence.com",
       password: adminPassword,
@@ -86,7 +90,11 @@ async function main() {
 
   await prisma.user.upsert({
     where: { email: "demo@btx-excellence.com" },
-    update: {},
+    update: {
+      password: demoPassword,
+      role: "PARTICIPANT",
+      status: "APPROVED",
+    },
     create: {
       email: "demo@btx-excellence.com",
       password: demoPassword,

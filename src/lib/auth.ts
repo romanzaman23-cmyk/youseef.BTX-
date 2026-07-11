@@ -14,50 +14,58 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null;
 
-        const email = (credentials.email as string).trim().toLowerCase();
-
-        const user = await prisma.user.findUnique({
-          where: { email },
-        });
-
-        if (!user) return null;
-
-        const valid = await bcrypt.compare(
-          credentials.password as string,
-          user.password
-        );
-        if (!valid) return null;
-
-        if (user.status === "SUSPENDED" || user.status === "REJECTED") {
-          throw new Error("Account is not active");
-        }
-
         try {
-          await prisma.user.update({
-            where: { id: user.id },
-            data: { lastLoginAt: new Date() },
-          });
-          await prisma.loginHistory.create({
-            data: { userId: user.id },
-          });
-          await prisma.activityLog.create({
-            data: {
-              userId: user.id,
-              action: "Login",
-              details: "Successful sign in",
-            },
-          });
-        } catch {
-          // Non-blocking: login should succeed even if audit logging fails
-        }
+          const email = (credentials.email as string).trim().toLowerCase();
 
-        return {
-          id: user.id,
-          email: user.email,
-          name: user.fullName,
-          role: user.role,
-          status: user.status,
-        };
+          const user = await prisma.user.findUnique({
+            where: { email },
+          });
+
+          if (!user) return null;
+
+          const valid = await bcrypt.compare(
+            credentials.password as string,
+            user.password
+          );
+          if (!valid) return null;
+
+          if (user.status === "SUSPENDED" || user.status === "REJECTED") {
+            throw new Error("Account is not active");
+          }
+
+          try {
+            await prisma.user.update({
+              where: { id: user.id },
+              data: { lastLoginAt: new Date() },
+            });
+            await prisma.loginHistory.create({
+              data: { userId: user.id },
+            });
+            await prisma.activityLog.create({
+              data: {
+                userId: user.id,
+                action: "Login",
+                details: "Successful sign in",
+              },
+            });
+          } catch {
+            // Non-blocking: login should succeed even if audit logging fails
+          }
+
+          return {
+            id: user.id,
+            email: user.email,
+            name: user.fullName,
+            role: user.role,
+            status: user.status,
+          };
+        } catch (error) {
+          if (error instanceof Error && error.message === "Account is not active") {
+            throw error;
+          }
+          console.error("Login authorize error:", error);
+          return null;
+        }
       },
     }),
   ],

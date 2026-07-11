@@ -1,0 +1,13 @@
+HTTP/1.1 302 Found
+Cache-Control: public, max-age=0, must-revalidate
+Content-Length: 0
+Date: Sat, 11 Jul 2026 18:47:18 GMT
+Location: https://youseef-btx.vercel.app/en/portal/dashboard
+Server: Vercel
+Set-Cookie: __Secure-authjs.callback-url=https%3A%2F%2Fyouseef-btx.vercel.app%2Fen%2Fportal%2Fdashboard; Path=/; HttpOnly; Secure; SameSite=Lax
+Set-Cookie: __Secure-authjs.session-token=eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2Q0JDLUhTNTEyIiwia2lkIjoielNRa3FrZzlhTkpxUUxaVmxXX3hmcTVBaDRLTURaSExnNHBleXVITEUwcU1wNkx3ZE1sb1ZCYjFScWx6dUFUMXpHeVowM2tiR1hQR2RmWVlrb1hGdkEifQ..lztKIJZfnu7wjDxmMx7oHA.cxzu4hNLM753TFWxSeFIKwH0NB-4U7_ExRH1Li_eODzb2gGG0C-ZEBHq0b1EwAA3xZZu9zLYiGYHylnmdt9OS0U9vWHa0t_epHGRCmMhs7NfMT_YuiNXc7uR6jbkFsEbcLBeCMuPPPct6HXD-yomt8ZxCVHmNY0pOar9q3SPLhooSi9-AKdI-C8UxpAlscJk81aYzSNM7NZFgto_qs2UIMjGJRMqQfcg_WU0sbhtWcL-iR_VWOmYTHoZwKUkq3s_gnSBr4kVIeFJC_AymnIs211iwBa-17asHXPySl2p_HuvfznV1EUYm8l5T3qza0UaEyeZxH5qAfqpUk_UrzI_4g.1wT1aP51sFUupDD3m-gqMZEvTI_l9iRptacednpM1G4; Path=/; Expires=Mon, 10 Aug 2026 18:47:18 GMT; HttpOnly; Secure; SameSite=Lax
+Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
+X-Matched-Path: /api/auth/[...nextauth]
+X-Vercel-Cache: MISS
+X-Vercel-Id: cdg1::iad1::ns62t-1783795637945-402edde0f163
+

@@ -2,20 +2,10 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { signIn } from "next-auth/react";
+import { getSession, signIn, signOut } from "next-auth/react";
 import { useTranslations, useLocale } from "next-intl";
 import { LogIn } from "lucide-react";
 import { PasswordInput } from "@/components/ui/PasswordInput";
-
-async function fetchSessionWithRetry(maxAttempts = 6) {
-  for (let attempt = 0; attempt < maxAttempts; attempt++) {
-    const sessionRes = await fetch("/api/auth/session", { cache: "no-store" });
-    const sessionData = await sessionRes.json();
-    if (sessionData?.user) return sessionData;
-    await new Promise((resolve) => setTimeout(resolve, 250));
-  }
-  return null;
-}
 
 type LoginFormProps = {
   variant?: "participant" | "admin";
@@ -38,14 +28,19 @@ export function LoginForm({ variant = "participant", registered = false }: Login
     const email = String(form.get("email") ?? "").trim().toLowerCase();
     const password = String(form.get("password") ?? "");
 
+    const redirectTo = isAdmin
+      ? `${window.location.origin}/${locale}/admin/dashboard`
+      : `${window.location.origin}/${locale}/portal/dashboard`;
+
     try {
       const result = await signIn("credentials", {
         email,
         password,
         redirect: false,
+        redirectTo,
       });
 
-      if (!result || result.error || result.ok === false) {
+      if (!result || result.error || !result.ok) {
         setLoading(false);
         setError(
           result?.error === "CredentialsSignin"
@@ -57,25 +52,21 @@ export function LoginForm({ variant = "participant", registered = false }: Login
         return;
       }
 
-      const sessionData = await fetchSessionWithRetry();
-      if (!sessionData?.user) {
-        setLoading(false);
-        setError("Login failed: session could not be created. Please try again.");
-        return;
-      }
+      const sessionData = await getSession();
 
-      if (isAdmin && sessionData.user.role !== "ADMIN") {
+      if (isAdmin && sessionData?.user?.role !== "ADMIN") {
+        await signOut({ redirect: false });
         setLoading(false);
         setError("This login is for administrators only.");
         return;
       }
 
       const destination =
-        sessionData.user.role === "ADMIN"
+        sessionData?.user?.role === "ADMIN"
           ? `/${locale}/admin/dashboard`
           : `/${locale}/portal/dashboard`;
 
-      window.location.href = destination;
+      window.location.href = result.url ?? destination;
     } catch {
       setLoading(false);
       setError("Network error. Please check your connection and try again.");

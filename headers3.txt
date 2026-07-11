@@ -1,0 +1,11 @@
+HTTP/1.1 302 Found
+Cache-Control: public, max-age=0, must-revalidate
+Content-Length: 0
+Date: Sat, 11 Jul 2026 18:47:16 GMT
+Location: https://youseef-btx.vercel.app/en/login?error=CredentialsSignin&code=credentials
+Server: Vercel
+Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
+X-Matched-Path: /api/auth/[...nextauth]
+X-Vercel-Cache: MISS
+X-Vercel-Id: cdg1::iad1::zm6xk-1783795635855-0f4fd4f57aed
+
