@@ -7,38 +7,47 @@ type PasswordInputProps = Omit<React.InputHTMLAttributes<HTMLInputElement>, "typ
   onVisibilityChange?: (visible: boolean) => void;
 };
 
-export function PasswordInput({ className, onVisibilityChange, onFocus, onBlur, ...props }: PasswordInputProps) {
+export function PasswordInput({
+  className,
+  onVisibilityChange,
+  onFocus,
+  onBlur,
+  ...props
+}: PasswordInputProps) {
   const [visible, setVisible] = useState(false);
 
-  const toggle = () => {
-    setVisible((v) => {
-      const next = !v;
+  const toggleVisibility = () => {
+    setVisible((current) => {
+      const next = !current;
       onVisibilityChange?.(next);
       return next;
     });
   };
 
   return (
-    <div className="relative">
+    <div className="relative w-full">
       <input
         {...props}
         type={visible ? "text" : "password"}
-        onFocus={(e) => {
-          onFocus?.(e);
+        onFocus={(event) => {
+          onFocus?.(event);
         }}
-        onBlur={(e) => {
-          onBlur?.(e);
+        onBlur={(event) => {
+          onBlur?.(event);
         }}
-        className={`${className ?? "input-field"} pe-10`}
+        className={`${className ?? "input-field"} w-full !pr-11`}
       />
       <button
         type="button"
-        tabIndex={-1}
-        onClick={toggle}
         aria-label={visible ? "Hide password" : "Show password"}
-        className="absolute inset-y-0 end-2 flex items-center text-gray-400 hover:text-gray-600 transition-colors"
+        aria-pressed={visible}
+        onMouseDown={(event) => {
+          event.preventDefault();
+          toggleVisibility();
+        }}
+        className="absolute top-1/2 end-2 z-20 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-md text-gray-500 hover:bg-gray-100 hover:text-gray-700"
       >
-        {visible ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+        {visible ? <EyeOff className="h-5 w-5 pointer-events-none" /> : <Eye className="h-5 w-5 pointer-events-none" />}
       </button>
     </div>
   );
