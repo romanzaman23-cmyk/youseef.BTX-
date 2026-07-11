@@ -62,28 +62,6 @@ body {
   box-shadow: 0 8px 40px rgba(15, 39, 68, 0.12);
 }
 
-@keyframes auth-float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-10px); }
-}
-
-@keyframes auth-shake {
-  0%, 100% { transform: translateX(0); }
-  20% { transform: translateX(-6px); }
-  40% { transform: translateX(6px); }
-  60% { transform: translateX(-4px); }
-  80% { transform: translateX(4px); }
-}
-
-.animate-auth-float {
-  animation: auth-float 4s ease-in-out infinite;
-  transform-origin: center;
-}
-
-.animate-auth-shake {
-  animation: auth-shake 0.45s ease-in-out;
-}
-
 .btn-primary {
   background: #0F2744;
   color: white;

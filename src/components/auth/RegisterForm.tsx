@@ -1,12 +1,11 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations, useLocale } from "next-intl";
+import { UserPlus } from "lucide-react";
 import { PasswordInput } from "@/components/ui/PasswordInput";
-import { AnimatedAuthShell } from "@/components/auth/AnimatedAuthShell";
-import type { LoginCharacterMood } from "@/components/auth/LoginCharacterAnimation";
 
 export function RegisterForm() {
   const t = useTranslations("auth");
@@ -14,16 +13,6 @@ export function RegisterForm() {
   const router = useRouter();
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [focusedField, setFocusedField] = useState<"email" | "password" | "other" | null>(null);
-  const [passwordVisible, setPasswordVisible] = useState(false);
-
-  const mood: LoginCharacterMood = useMemo(() => {
-    if (loading) return "loading";
-    if (error) return "error";
-    if (focusedField === "password") return passwordVisible ? "peek" : "password";
-    if (focusedField === "email") return "email";
-    return "idle";
-  }, [loading, error, focusedField, passwordVisible]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -65,12 +54,14 @@ export function RegisterForm() {
   };
 
   return (
-    <AnimatedAuthShell
-      mood={mood}
-      variant="participant"
-      title={t("register_title")}
-      subtitle={t("register_subtitle")}
-    >
+    <div className="bg-white rounded-xl p-8 card-shadow-lg max-w-lg w-full mx-auto">
+      <div className="text-center mb-6">
+        <div className="w-14 h-14 rounded-xl bg-btx-accent flex items-center justify-center mx-auto mb-4">
+          <UserPlus className="w-7 h-7 text-white" />
+        </div>
+        <h1 className="text-2xl font-bold text-btx-primary">{t("register_title")}</h1>
+      </div>
+
       {error && (
         <div className="mb-4 p-3 bg-red-50 text-red-600 rounded-lg text-sm">{error}</div>
       )}
@@ -78,37 +69,16 @@ export function RegisterForm() {
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">{t("full_name")}</label>
-          <input
-            name="fullName"
-            type="text"
-            required
-            className="input-field"
-            onFocus={() => setFocusedField("other")}
-            onBlur={() => setFocusedField(null)}
-          />
+          <input name="fullName" type="text" required className="input-field" />
         </div>
         <div className="grid sm:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">{t("email")}</label>
-            <input
-              name="email"
-              type="email"
-              required
-              className="input-field"
-              onFocus={() => setFocusedField("email")}
-              onBlur={() => setFocusedField(null)}
-            />
+            <input name="email" type="email" required className="input-field" />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">{t("mobile")}</label>
-            <input
-              name="mobile"
-              type="tel"
-              required
-              className="input-field"
-              onFocus={() => setFocusedField("other")}
-              onBlur={() => setFocusedField(null)}
-            />
+            <input name="mobile" type="tel" required className="input-field" />
           </div>
         </div>
         <div className="grid sm:grid-cols-2 gap-4">
@@ -124,36 +94,24 @@ export function RegisterForm() {
         <div className="grid sm:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">{t("password")}</label>
-            <PasswordInput
-              name="password"
-              required
-              minLength={8}
-              onFocus={() => setFocusedField("password")}
-              onBlur={() => setFocusedField(null)}
-              onVisibilityChange={setPasswordVisible}
-            />
+            <PasswordInput name="password" required minLength={8} />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">{t("confirm_password")}</label>
-            <PasswordInput
-              name="confirmPassword"
-              required
-              onFocus={() => setFocusedField("password")}
-              onBlur={() => setFocusedField(null)}
-            />
+            <PasswordInput name="confirmPassword" required />
           </div>
         </div>
-        <button type="submit" disabled={loading} className="btn-accent w-full py-3 rounded-full">
+        <button type="submit" disabled={loading} className="btn-accent w-full">
           {loading ? "..." : t("register_btn")}
         </button>
       </form>
 
-      <p className="mt-8 text-center text-sm text-gray-500">
+      <p className="mt-6 text-center text-sm text-gray-500">
         {t("has_account")}{" "}
         <Link href={`/${locale}/login`} className="text-btx-accent font-medium hover:underline">
           {t("login_btn")}
         </Link>
       </p>
-    </AnimatedAuthShell>
+    </div>
   );
 }
