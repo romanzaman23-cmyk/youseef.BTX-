@@ -13,7 +13,7 @@ export default async function AdminLayout({
   const { locale } = await params;
 
   if (!session?.user) {
-    redirect(`/${locale}/login`);
+    redirect(`/${locale}/login/admin`);
   }
 
   if (session.user.role !== "ADMIN") {

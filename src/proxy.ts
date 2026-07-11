@@ -24,7 +24,8 @@ export async function proxy(request: NextRequest) {
     });
 
     if (!token) {
-      return NextResponse.redirect(new URL(`/${locale}/login`, request.url));
+      const loginPath = isAdmin ? `/${locale}/login/admin` : `/${locale}/login`;
+      return NextResponse.redirect(new URL(loginPath, request.url));
     }
 
     if (isAdmin && token.role !== "ADMIN") {

@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { getCompetencyColor } from "@/lib/competency";
 import { CertificateDownloadButton } from "@/components/portal/CertificateDownloadButton";
+import { PasswordInput } from "@/components/ui/PasswordInput";
 import Link from "next/link";
 
 interface ProfileData {
