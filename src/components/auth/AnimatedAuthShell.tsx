@@ -23,7 +23,7 @@ export function AnimatedAuthShell({ mood, variant = "participant", title, subtit
 
       <div className="flex flex-col justify-center px-6 py-10 sm:px-10 lg:px-16">
         <div className="w-full max-w-md mx-auto">
-          <div className="mb-8 lg:hidden rounded-2xl overflow-hidden">
+          <div className="mb-8 lg:hidden rounded-2xl overflow-hidden min-h-[280px]">
             <LoginCharacterAnimation mood={mood} variant={variant} />
           </div>
 

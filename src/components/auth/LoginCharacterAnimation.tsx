@@ -1,5 +1,7 @@
 "use client";
 
+import { useCallback, useEffect, useRef, useState } from "react";
+
 export type LoginCharacterMood = "idle" | "email" | "password" | "peek" | "error" | "loading";
 
 type Props = {
@@ -7,113 +9,231 @@ type Props = {
   variant?: "participant" | "admin";
 };
 
+type Point = { x: number; y: number };
+
+function clamp(value: number, min: number, max: number) {
+  return Math.min(max, Math.max(min, value));
+}
+
+function pupilOffset(eyeX: number, eyeY: number, target: Point, max = 5) {
+  const dx = target.x - eyeX;
+  const dy = target.y - eyeY;
+  const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+  const scale = Math.min(max, dist * 0.08);
+  return { x: (dx / dist) * scale, y: (dy / dist) * scale };
+}
+
+function Eye({
+  cx,
+  cy,
+  target,
+  r = 9,
+  pupilR = 5,
+  closed = false,
+  lookAway = false,
+}: {
+  cx: number;
+  cy: number;
+  target: Point;
+  r?: number;
+  pupilR?: number;
+  closed?: boolean;
+  lookAway?: boolean;
+}) {
+  if (closed) {
+    return (
+      <path
+        d={`M${cx - r} ${cy} Q${cx} ${cy + 4} ${cx + r} ${cy}`}
+        stroke="#1a1a2e"
+        strokeWidth="2.5"
+        fill="none"
+        strokeLinecap="round"
+      />
+    );
+  }
+
+  if (lookAway) {
+    return (
+      <>
+        <circle cx={cx - 3} cy={cy} r={r} fill="white" stroke="#ddd" strokeWidth="1" />
+        <circle cx={cx - 1} cy={cy} r={pupilR - 1} fill="#1a1a2e" />
+      </>
+    );
+  }
+
+  const offset = pupilOffset(cx, cy, target, r * 0.55);
+
+  return (
+    <>
+      <circle cx={cx} cy={cy} r={r} fill="white" stroke="#e5e7eb" strokeWidth="1" />
+      <circle cx={cx + offset.x} cy={cy + offset.y} r={pupilR} fill="#1a1a2e" />
+    </>
+  );
+}
+
+function Hand({ cx, cy, flip = false }: { cx: number; cy: number; flip?: boolean }) {
+  return (
+    <ellipse
+      cx={cx}
+      cy={cy}
+      rx={26}
+      ry={16}
+      fill="#FF8A50"
+      stroke="#E56A30"
+      strokeWidth="2"
+      transform={flip ? `scale(-1,1) translate(${-2 * cx},0)` : undefined}
+    />
+  );
+}
+
 export function LoginCharacterAnimation({ mood, variant = "participant" }: Props) {
   const isAdmin = variant === "admin";
+  const svgRef = useRef<SVGSVGElement>(null);
+  const [target, setTarget] = useState<Point>({ x: 360, y: 180 });
+
+  const trackPointer = useCallback((clientX: number, clientY: number) => {
+    const svg = svgRef.current;
+    if (!svg) return;
+    const rect = svg.getBoundingClientRect();
+    const x = ((clientX - rect.left) / rect.width) * 480;
+    const y = ((clientY - rect.top) / rect.height) * 400;
+    setTarget({
+      x: clamp(x, 0, 480),
+      y: clamp(y, 0, 400),
+    });
+  }, []);
+
+  useEffect(() => {
+    const onMove = (e: MouseEvent) => trackPointer(e.clientX, e.clientY);
+    window.addEventListener("mousemove", onMove);
+    return () => window.removeEventListener("mousemove", onMove);
+  }, [trackPointer]);
+
   const shake = mood === "error";
   const peek = mood === "peek";
-  const hideEyes = mood === "password" || mood === "loading";
-  const lookRight = mood === "email";
+  const passwordMode = mood === "password" || mood === "loading";
+  const trackMouse = !passwordMode && !peek;
+
+  const lookTarget = trackMouse ? target : { x: 40, y: 200 };
 
   return (
     <div
-      className={`relative h-full min-h-[320px] w-full overflow-hidden ${
+      className={`relative h-full min-h-[360px] w-full overflow-hidden ${
         isAdmin
           ? "bg-gradient-to-br from-[#0F2744] via-[#1a3a5c] to-[#0a1a2e]"
           : "bg-gradient-to-br from-slate-100 via-slate-50 to-teal-50"
       }`}
     >
       <div
-        className={`absolute inset-0 flex items-center justify-center p-8 ${shake ? "animate-auth-shake" : ""}`}
+        className={`absolute inset-0 flex items-center justify-center p-6 sm:p-10 ${
+          shake ? "animate-auth-shake" : ""
+        }`}
       >
         <svg
-          viewBox="0 0 400 320"
-          className="w-full max-w-md drop-shadow-sm"
+          ref={svgRef}
+          viewBox="0 0 480 400"
+          className="w-full max-w-2xl h-auto drop-shadow-md"
           aria-hidden
         >
-          {/* Orange blob */}
+          {/* Orange blob — covers eyes on password */}
           <g className="animate-auth-float" style={{ animationDelay: "0s" }}>
             <path
-              d="M40 220 Q40 140 120 130 Q200 120 210 200 Q220 260 120 270 Q40 280 40 220 Z"
+              d="M30 280 Q20 160 130 145 Q240 130 255 230 Q270 320 140 335 Q30 350 30 280 Z"
               fill="#FF8A50"
             />
-            {!hideEyes && (
-              <g transform={lookRight ? "translate(18, 0)" : undefined}>
-                <circle cx="95" cy="185" r="5" fill="#1a1a2e" className="transition-transform duration-300" />
-                <circle cx="130" cy="182" r="5" fill="#1a1a2e" className="transition-transform duration-300" />
-                {lookRight && (
-                  <>
-                    <circle cx="97" cy="185" r="2" fill="white" />
-                    <circle cx="132" cy="182" r="2" fill="white" />
-                  </>
-                )}
+            {!passwordMode && !peek && (
+              <g>
+                <Eye cx={108} cy={218} target={lookTarget} r={10} pupilR={5} />
+                <Eye cx={158} cy={214} target={lookTarget} r={10} pupilR={5} />
               </g>
             )}
-            {hideEyes && !peek && (
-              <path d="M82 175 Q112 195 148 175" stroke="#1a1a2e" strokeWidth="3" fill="none" strokeLinecap="round" />
-            )}
-            {/* Hands covering eyes on password */}
-            {(hideEyes || peek) && (
-              <g className="transition-all duration-300">
-                <ellipse cx="88" cy="178" rx="22" ry="14" fill="#FF8A50" stroke="#E56A30" strokeWidth="2" />
-                <ellipse cx="138" cy="178" rx="22" ry="14" fill="#FF8A50" stroke="#E56A30" strokeWidth="2" />
-                {peek && (
-                  <circle cx="138" cy="178" r="4" fill="#1a1a2e" />
-                )}
-              </g>
-            )}
-          </g>
-
-          {/* Purple rectangle */}
-          <g className="animate-auth-float" style={{ animationDelay: "0.4s" }}>
-            <rect x="155" y="70" width="55" height="150" rx="8" fill="#7B68EE" transform="rotate(-8 182 145)" />
-            {!hideEyes && (
-              <g transform={`rotate(-8 182 145) ${lookRight ? "translate(8, 0)" : ""}`}>
-                <circle cx="172" cy="115" r="4" fill="#1a1a2e" />
-                <path d="M168 128 Q182 135 196 128" stroke="#1a1a2e" strokeWidth="2" fill="none" />
-              </g>
-            )}
-            {hideEyes && (
-              <g transform="rotate(-8 182 145)">
-                <rect x="158" y="105" width="48" height="28" rx="6" fill="#7B68EE" stroke="#5a4fd4" strokeWidth="2" />
-              </g>
-            )}
-          </g>
-
-          {/* Black tall character */}
-          <g className="animate-auth-float" style={{ animationDelay: "0.2s" }}>
-            <rect x="218" y="55" width="42" height="175" rx="6" fill="#1a1a2e" />
-            {!hideEyes && (
-              <g transform={lookRight ? "translate(6, 0)" : undefined}>
-                <circle cx="232" cy="95" r="10" fill="white" />
-                <circle cx="248" cy="95" r="10" fill="white" />
-                <circle cx="234" cy="95" r="5" fill="#1a1a2e" />
-                <circle cx="250" cy="95" r="5" fill="#1a1a2e" />
-              </g>
-            )}
-            {hideEyes && (
+            {passwordMode && (
               <>
-                <rect x="224" y="82" width="30" height="22" rx="4" fill="#1a1a2e" stroke="#333" strokeWidth="2" />
-                {peek && <circle cx="252" cy="93" r="5" fill="white" />}
+                <path d="M95 205 Q132 225 172 205" stroke="#1a1a2e" strokeWidth="3" fill="none" strokeLinecap="round" />
+                <Hand cx={95} cy={210} />
+                <Hand cx={168} cy={210} flip />
+              </>
+            )}
+            {peek && (
+              <>
+                <Hand cx={95} cy={210} />
+                <ellipse cx={168} cy={210} rx={26} ry={16} fill="#FF8A50" stroke="#E56A30" strokeWidth="2" />
+                <Eye cx={168} cy={210} target={lookTarget} r={8} pupilR={4} />
               </>
             )}
           </g>
 
-          {/* Gold / yellow pillar - BTX accent */}
-          <g className="animate-auth-float" style={{ animationDelay: "0.6s" }}>
-            <path
-              d="M295 90 L340 90 L335 250 L300 250 Z"
-              fill={isAdmin ? "#C9A227" : "#FFD54F"}
-              rx="4"
-            />
-            <ellipse cx="317" cy="88" rx="28" ry="12" fill={isAdmin ? "#C9A227" : "#FFD54F"} />
-            {!hideEyes && (
-              <g transform={lookRight ? "translate(5, 0)" : undefined}>
-                <circle cx="308" cy="130" r="4" fill="#1a1a2e" />
-                <line x1="302" y1="148" x2="322" y2="148" stroke="#1a1a2e" strokeWidth="2" strokeLinecap="round" />
+          {/* Purple — looks away left on password */}
+          <g
+            className="animate-auth-float transition-transform duration-500"
+            style={{
+              animationDelay: "0.35s",
+              transform: passwordMode || peek ? "translate(-28px, 6px) rotate(-18deg)" : undefined,
+              transformOrigin: "200px 200px",
+            }}
+          >
+            <rect x="168" y="75" width="68" height="185" rx="10" fill="#7B68EE" transform="rotate(-8 202 167)" />
+            {!passwordMode && !peek && (
+              <g transform="rotate(-8 202 167)">
+                <Eye cx={188} cy={138} target={lookTarget} r={8} pupilR={4} />
+                <Eye cx={218} cy={136} target={lookTarget} r={8} pupilR={4} />
+                <path d="M183 162 Q203 172 223 162" stroke="#1a1a2e" strokeWidth="2.5" fill="none" strokeLinecap="round" />
               </g>
             )}
-            {hideEyes && (
-              <rect x="298" y="120" width="38" height="24" rx="5" fill={isAdmin ? "#C9A227" : "#FFD54F"} stroke="#c9a020" strokeWidth="2" />
+            {(passwordMode || peek) && (
+              <g transform="rotate(-8 202 167)">
+                <Eye cx={188} cy={138} target={lookTarget} closed lookAway />
+                <Eye cx={218} cy={136} target={lookTarget} closed lookAway />
+              </g>
+            )}
+          </g>
+
+          {/* Black tall — big eyes, covers on password */}
+          <g className="animate-auth-float" style={{ animationDelay: "0.18s" }}>
+            <rect x="248" y="58" width="52" height="210" rx="8" fill="#1a1a2e" />
+            {!passwordMode && !peek && (
+              <g>
+                <Eye cx={264} cy={118} target={lookTarget} r={13} pupilR={6} />
+                <Eye cx={288} cy={118} target={lookTarget} r={13} pupilR={6} />
+              </g>
+            )}
+            {passwordMode && (
+              <>
+                <ellipse cx={262} cy={115} rx={24} ry={14} fill="#FF8A50" stroke="#E56A30" strokeWidth="2" />
+                <ellipse cx={286} cy={115} rx={24} ry={14} fill="#FF8A50" stroke="#E56A30" strokeWidth="2" />
+              </>
+            )}
+            {peek && (
+              <>
+                <ellipse cx={262} cy={115} rx={24} ry={14} fill="#2a2a2a" stroke="#444" strokeWidth="2" />
+                <Eye cx={288} cy={115} target={lookTarget} r={10} pupilR={5} />
+              </>
+            )}
+          </g>
+
+          {/* Yellow pillar — looks away right on password */}
+          <g
+            className="animate-auth-float transition-transform duration-500"
+            style={{
+              animationDelay: "0.55s",
+              transform: passwordMode || peek ? "translate(32px, 4px) rotate(14deg)" : undefined,
+              transformOrigin: "360px 200px",
+            }}
+          >
+            <path d="M338 95 L398 95 L390 295 L346 295 Z" fill={isAdmin ? "#C9A227" : "#FFD54F"} />
+            <ellipse cx={368} cy={92} rx={34} ry={14} fill={isAdmin ? "#C9A227" : "#FFD54F"} />
+            {!passwordMode && !peek && (
+              <g>
+                <Eye cx={352} cy={155} target={lookTarget} r={8} pupilR={4} />
+                <Eye cx={382} cy={153} target={lookTarget} r={8} pupilR={4} />
+                <line x1={345} y1={178} x2={385} y2={178} stroke="#1a1a2e" strokeWidth="2.5" strokeLinecap="round" />
+              </g>
+            )}
+            {(passwordMode || peek) && (
+              <g>
+                <Eye cx={352} cy={155} target={lookTarget} closed lookAway />
+                <Eye cx={382} cy={153} target={lookTarget} closed lookAway />
+              </g>
             )}
           </g>
         </svg>
@@ -124,13 +244,13 @@ export function LoginCharacterAnimation({ mood, variant = "participant" }: Props
           {isAdmin ? "BTX Admin Portal" : "BTX Participant Portal"}
         </p>
         <p className="text-xs mt-1 opacity-80">
-          {mood === "password" || mood === "loading"
+          {passwordMode
             ? "We won't peek at your password!"
-            : mood === "peek"
+            : peek
               ? "Okay, we peeked a little..."
               : mood === "email"
                 ? "Welcome back!"
-                : "Bin Tuwaym Excellence"}
+                : "Move your mouse — we're watching!"}
         </p>
       </div>
     </div>
