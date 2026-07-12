@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import {
   getEmailConfig,
+  getAdminNotifyEmail,
   isEmailConfiguredAsync,
   maskApiKey,
   saveEmailSettings,
@@ -31,6 +32,7 @@ export async function GET() {
     smtpHost: config.smtpHost || "",
     smtpPort: config.smtpPort || "587",
     smtpUser: config.smtpUser || "",
+    adminNotify: (await getAdminNotifyEmail()) || "",
     provider: config.smtpHost ? "smtp" : config.resendApiKey ? "resend" : "none",
   });
 }
@@ -58,6 +60,7 @@ export async function PUT(request: Request) {
     smtpPort: typeof body.smtpPort === "string" ? body.smtpPort : undefined,
     smtpUser: typeof body.smtpUser === "string" ? body.smtpUser : undefined,
     smtpPass: typeof body.smtpPass === "string" ? body.smtpPass : undefined,
+    adminNotify: typeof body.adminNotify === "string" ? body.adminNotify : undefined,
   });
 
   const configured = await isEmailConfiguredAsync();

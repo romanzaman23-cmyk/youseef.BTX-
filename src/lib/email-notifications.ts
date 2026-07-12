@@ -74,6 +74,31 @@ export async function sendAdminNewRegistrationNotice(params: {
   return sendEmail({ to: params.adminEmail, subject, html, text });
 }
 
+export async function sendAccountApprovedEmail(params: {
+  to: string;
+  fullName: string;
+}) {
+  const loginUrl = `${getAppBaseUrl()}/en/login`;
+  const portalUrl = `${getAppBaseUrl()}/en/portal/booking`;
+  const subject = `Your BTX Account Has Been Approved`;
+
+  const html = emailLayout(`
+    <h2 style="color:#0F2744;">Account Approved!</h2>
+    <p>Hello ${params.fullName},</p>
+    <p>Great news — your <strong>${BRAND.fullName}</strong> account has been approved by the administrator.</p>
+    ${infoBox([
+      { label: "Status", value: "Approved" },
+      { label: "Next Step", value: "Log in and book your examination" },
+    ])}
+    ${button(loginUrl, "Log In Now")}
+    ${button(portalUrl, "Book Examination")}
+  `);
+
+  const text = `Your BTX account is approved. Log in: ${loginUrl}`;
+
+  return sendEmail({ to: params.to, subject, html, text });
+}
+
 export async function sendBookingConfirmationEmail(params: {
   to: string;
   fullName: string;

@@ -157,7 +157,50 @@ async function main() {
       create: { key: "email.from", value: from },
       update: { value: from },
     });
-    console.log("Email settings configured from environment variables");
+    console.log("Resend email settings configured from environment");
+  }
+
+  const smtpHost = process.env.SMTP_HOST?.trim() || process.env.BREVO_SMTP_HOST?.trim();
+  const smtpUser = process.env.SMTP_USER?.trim() || process.env.BREVO_SMTP_USER?.trim();
+  const smtpPass = process.env.SMTP_PASS?.trim() || process.env.BREVO_SMTP_KEY?.trim();
+  if (smtpHost && smtpUser && smtpPass) {
+    await prisma.systemSetting.upsert({
+      where: { key: "email.smtp_host" },
+      create: { key: "email.smtp_host", value: smtpHost },
+      update: { value: smtpHost },
+    });
+    await prisma.systemSetting.upsert({
+      where: { key: "email.smtp_port" },
+      create: { key: "email.smtp_port", value: process.env.SMTP_PORT?.trim() || "587" },
+      update: { value: process.env.SMTP_PORT?.trim() || "587" },
+    });
+    await prisma.systemSetting.upsert({
+      where: { key: "email.smtp_user" },
+      create: { key: "email.smtp_user", value: smtpUser },
+      update: { value: smtpUser },
+    });
+    await prisma.systemSetting.upsert({
+      where: { key: "email.smtp_pass" },
+      create: { key: "email.smtp_pass", value: smtpPass },
+      update: { value: smtpPass },
+    });
+    const from =
+      process.env.EMAIL_FROM?.trim() ||
+      `BTX Excellence <${smtpUser}>`;
+    await prisma.systemSetting.upsert({
+      where: { key: "email.from" },
+      create: { key: "email.from", value: from },
+      update: { value: from },
+    });
+    console.log("SMTP email settings configured from environment");
+  }
+
+  if (process.env.ADMIN_NOTIFY_EMAIL?.trim()) {
+    await prisma.systemSetting.upsert({
+      where: { key: "email.admin_notify" },
+      create: { key: "email.admin_notify", value: process.env.ADMIN_NOTIFY_EMAIL.trim() },
+      update: { value: process.env.ADMIN_NOTIFY_EMAIL.trim() },
+    });
   }
 
   console.log("Seed completed!");

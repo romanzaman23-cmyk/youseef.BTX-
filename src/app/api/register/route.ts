@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
-import { sendWelcomeEmail, sendAdminNewRegistrationNotice } from "@/lib/email-notifications";
+import { sendWelcomeEmail, sendAdminNewRegistrationNotice, sendAccountApprovedEmail } from "@/lib/email-notifications";
+import { resolveAdminNotifyEmail } from "@/lib/admin-notify";
 import { z } from "zod";
 
 const registerSchema = z.object({
@@ -26,7 +27,7 @@ export async function POST(request: Request) {
 
     const hashedPassword = await bcrypt.hash(data.password, 12);
 
-    await prisma.user.create({
+    const user = await prisma.user.create({
       data: {
         fullName: data.fullName,
         email,
@@ -35,6 +36,15 @@ export async function POST(request: Request) {
         jobTitle: data.jobTitle,
         password: hashedPassword,
         status: "PENDING",
+      },
+    });
+
+    await prisma.notification.create({
+      data: {
+        userId: user.id,
+        title: "Welcome to BTX",
+        message: "Your account was created and is pending admin approval. You will be notified when you can log in.",
+        type: "INFO",
       },
     });
 
@@ -48,17 +58,18 @@ export async function POST(request: Request) {
       console.error("Welcome email failed:", err);
     }
 
-    const admin = await prisma.user.findFirst({
-      where: { role: "ADMIN" },
-      select: { email: true },
-    });
-    if (admin?.email) {
-      void sendAdminNewRegistrationNotice({
-        adminEmail: admin.email,
-        userName: data.fullName,
-        userEmail: email,
-        welcomeEmailFailed: !emailSent,
-      }).catch(console.error);
+    const adminEmail = await resolveAdminNotifyEmail();
+    if (adminEmail) {
+      try {
+        await sendAdminNewRegistrationNotice({
+          adminEmail,
+          userName: data.fullName,
+          userEmail: email,
+          welcomeEmailFailed: !emailSent,
+        });
+      } catch (err) {
+        console.error("Admin registration notice failed:", err);
+      }
     }
 
     return NextResponse.json({ success: true, emailSent, emailError });

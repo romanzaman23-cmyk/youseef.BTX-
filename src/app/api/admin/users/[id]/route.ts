@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { sendWelcomeEmail, sendAccountApprovedEmail } from "@/lib/email-notifications";
 
 export async function PATCH(
   request: Request,
@@ -28,6 +29,19 @@ export async function PATCH(
         type: "INFO",
       },
     });
+
+    if (user.notifyEmail) {
+      try {
+        await sendAccountApprovedEmail({ to: user.email, fullName: user.fullName });
+      } catch (err) {
+        console.error("Account approved email failed:", err);
+        try {
+          await sendWelcomeEmail({ to: user.email, fullName: user.fullName });
+        } catch {
+          /* logged above */
+        }
+      }
+    }
   }
 
   await prisma.activityLog.create({

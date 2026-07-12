@@ -4,6 +4,7 @@ const EMAIL_KEYS = {
   resendApiKey: "email.resend_api_key",
   emailFrom: "email.from",
   resendDomainId: "email.resend_domain_id",
+  adminNotify: "email.admin_notify",
   smtpHost: "email.smtp_host",
   smtpPort: "email.smtp_port",
   smtpUser: "email.smtp_user",
@@ -52,10 +53,18 @@ export async function isEmailConfiguredAsync(): Promise<boolean> {
   );
 }
 
+export async function getAdminNotifyEmail(): Promise<string | null> {
+  const fromSetting = await readSetting(EMAIL_KEYS.adminNotify);
+  if (fromSetting) return fromSetting;
+  if (process.env.ADMIN_NOTIFY_EMAIL?.trim()) return process.env.ADMIN_NOTIFY_EMAIL.trim();
+  return null;
+}
+
 export async function saveEmailSettings(data: {
   resendApiKey?: string;
   emailFrom?: string;
   resendDomainId?: string;
+  adminNotify?: string;
   smtpHost?: string;
   smtpPort?: string;
   smtpUser?: string;
@@ -71,6 +80,9 @@ export async function saveEmailSettings(data: {
   }
   if (data.resendDomainId !== undefined && data.resendDomainId.trim()) {
     upserts.push({ key: EMAIL_KEYS.resendDomainId, value: data.resendDomainId.trim() });
+  }
+  if (data.adminNotify !== undefined && data.adminNotify.trim()) {
+    upserts.push({ key: EMAIL_KEYS.adminNotify, value: data.adminNotify.trim() });
   }
   if (data.smtpHost !== undefined && data.smtpHost.trim()) {
     upserts.push({ key: EMAIL_KEYS.smtpHost, value: data.smtpHost.trim() });

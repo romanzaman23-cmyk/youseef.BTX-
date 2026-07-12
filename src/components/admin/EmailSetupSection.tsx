@@ -39,6 +39,7 @@ export function EmailSetupSection() {
   const [domain, setDomain] = useState<DomainInfo | null>(null);
   const [domainLoading, setDomainLoading] = useState(false);
   const [domainMessage, setDomainMessage] = useState("");
+  const [adminNotify, setAdminNotify] = useState("romanzaman23@gmail.com");
 
   const loadEmailSettings = () => {
     fetch("/api/admin/settings/email")
@@ -52,6 +53,7 @@ export function EmailSetupSection() {
         if (data.smtpHost) setSmtpHost(data.smtpHost);
         if (data.smtpPort) setSmtpPort(data.smtpPort);
         if (data.smtpUser) setSmtpUser(data.smtpUser);
+        if (data.adminNotify) setAdminNotify(data.adminNotify);
       })
       .catch(() => setEmailConfigured(false));
   };
@@ -87,6 +89,7 @@ export function EmailSetupSection() {
         smtpPort: smtpPort.trim() || undefined,
         smtpUser: smtpUser.trim() || undefined,
         smtpPass: smtpPass.trim() || undefined,
+        adminNotify: adminNotify.trim() || undefined,
       }),
     });
     const data = await res.json();
@@ -209,6 +212,12 @@ export function EmailSetupSection() {
           <label className="block text-sm font-medium text-gray-700 mb-1">Resend API Key</label>
           <input type="password" value={resendApiKey} onChange={(e) => setResendApiKey(e.target.value)}
             placeholder={resendKeyHint ? `Saved: ${resendKeyHint}` : "re_..."} className="input-field font-mono text-sm" />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Admin Alert Email (registration notices)</label>
+          <input type="email" value={adminNotify} onChange={(e) => setAdminNotify(e.target.value)} className="input-field text-sm" />
+          <p className="text-xs text-gray-400 mt-1">Use your real inbox — e.g. romanzaman23@gmail.com (works with Resend test mode)</p>
         </div>
 
         <div>
