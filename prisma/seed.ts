@@ -144,6 +144,22 @@ async function main() {
     console.log(`Created ${slots.length} exam slots`);
   }
 
+  if (process.env.RESEND_API_KEY?.trim()) {
+    await prisma.systemSetting.upsert({
+      where: { key: "email.resend_api_key" },
+      create: { key: "email.resend_api_key", value: process.env.RESEND_API_KEY.trim() },
+      update: { value: process.env.RESEND_API_KEY.trim() },
+    });
+    const from =
+      process.env.EMAIL_FROM?.trim() || "BTX Excellence <onboarding@resend.dev>";
+    await prisma.systemSetting.upsert({
+      where: { key: "email.from" },
+      create: { key: "email.from", value: from },
+      update: { value: from },
+    });
+    console.log("Email settings configured from environment variables");
+  }
+
   console.log("Seed completed!");
   console.log("Admin: admin@btx-excellence.com / Admin@123");
   console.log("Demo:  demo@btx-excellence.com / Demo@123");

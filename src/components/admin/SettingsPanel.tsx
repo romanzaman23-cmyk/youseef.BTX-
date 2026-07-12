@@ -171,6 +171,14 @@ export function SettingsPanel({ thresholds }: { thresholds: Thresholds }) {
               className="input-field text-sm"
             />
             <p className="text-xs text-gray-400 mt-1">Testing: use onboarding@resend.dev until your domain is verified</p>
+          <p className="text-xs text-amber-600 mt-2">
+            Exam reminders (30 min before): on free Vercel plan use{" "}
+            <a href="https://cron-job.org" target="_blank" rel="noreferrer" className="underline">
+              cron-job.org
+            </a>{" "}
+            to call <code className="text-xs">/api/cron/exam-reminders</code> every 5 minutes with header{" "}
+            <code className="text-xs">Authorization: Bearer YOUR_CRON_SECRET</code>
+          </p>
           </div>
 
           <button onClick={handleSaveEmail} disabled={savingEmail} className="btn-primary">
