@@ -1,28 +1,45 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { getTranslations } from "next-intl/server";
+import { useSearchParams } from "next/navigation";
+import { getCsrfToken } from "next-auth/react";
+import { useTranslations, useLocale } from "next-intl";
 import { LogIn } from "lucide-react";
 import { PasswordInput } from "@/components/ui/PasswordInput";
-import { getAuthOrigin } from "@/lib/auth-csrf";
+import { getLoginError } from "@/lib/auth-errors";
 
 type LoginFormProps = {
-  csrfToken: string;
-  locale: string;
   variant?: "participant" | "admin";
   registered?: boolean;
-  error?: string;
 };
 
-export async function LoginForm({
-  csrfToken,
-  locale,
-  variant = "participant",
-  registered = false,
-  error,
-}: LoginFormProps) {
-  const t = await getTranslations("auth");
+export function LoginForm({ variant = "participant", registered = false }: LoginFormProps) {
+  const t = useTranslations("auth");
+  const locale = useLocale();
+  const searchParams = useSearchParams();
   const isAdmin = variant === "admin";
-  const origin = await getAuthOrigin();
-  const callbackUrl = `${origin}/${locale}/${isAdmin ? "admin/dashboard" : "portal/dashboard"}`;
+
+  const [csrfToken, setCsrfToken] = useState("");
+  const [ready, setReady] = useState(false);
+
+  const urlError = getLoginError(searchParams.get("error") ?? undefined);
+
+  useEffect(() => {
+    getCsrfToken()
+      .then((token) => {
+        setCsrfToken(token ?? "");
+        setReady(true);
+      })
+      .catch(() => {
+        setReady(true);
+      });
+  }, []);
+
+  const callbackUrl =
+    typeof window !== "undefined"
+      ? `${window.location.origin}/${locale}/${isAdmin ? "admin/dashboard" : "portal/dashboard"}`
+      : `/${locale}/${isAdmin ? "admin/dashboard" : "portal/dashboard"}`;
 
   return (
     <div className="bg-white rounded-xl p-8 card-shadow-lg max-w-md w-full mx-auto">
@@ -41,31 +58,39 @@ export async function LoginForm({
         </div>
       )}
 
-      {error && (
-        <div className="mb-4 p-3 bg-red-50 text-red-600 rounded-lg text-sm">{error}</div>
+      {urlError && (
+        <div className="mb-4 p-3 bg-red-50 text-red-600 rounded-lg text-sm">{urlError}</div>
       )}
 
-      <form method="post" action="/api/auth/callback/credentials" className="space-y-4">
-        <input type="hidden" name="csrfToken" value={csrfToken} />
-        <input type="hidden" name="callbackUrl" value={callbackUrl} />
+      {!ready ? (
+        <div className="py-8 text-center text-sm text-gray-500">Loading...</div>
+      ) : !csrfToken ? (
+        <div className="mb-4 p-3 bg-red-50 text-red-600 rounded-lg text-sm">
+          Could not start login session. Please refresh the page.
+        </div>
+      ) : (
+        <form method="post" action="/api/auth/callback/credentials" className="space-y-4">
+          <input type="hidden" name="csrfToken" value={csrfToken} />
+          <input type="hidden" name="callbackUrl" value={callbackUrl} />
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">{t("email")}</label>
-          <input name="email" type="email" required autoComplete="email" className="input-field" />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">{t("password")}</label>
-          <PasswordInput name="password" required autoComplete="current-password" />
-        </div>
-        <div className="text-right">
-          <Link href={`/${locale}/forgot-password`} className="text-sm text-btx-accent hover:underline">
-            {t("forgot_link")}
-          </Link>
-        </div>
-        <button type="submit" className="btn-primary w-full">
-          {t("login_btn")}
-        </button>
-      </form>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t("email")}</label>
+            <input name="email" type="email" required autoComplete="email" className="input-field" />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t("password")}</label>
+            <PasswordInput name="password" required autoComplete="current-password" />
+          </div>
+          <div className="text-right">
+            <Link href={`/${locale}/forgot-password`} className="text-sm text-btx-accent hover:underline">
+              {t("forgot_link")}
+            </Link>
+          </div>
+          <button type="submit" className="btn-primary w-full">
+            {t("login_btn")}
+          </button>
+        </form>
+      )}
 
       {!isAdmin && (
         <p className="mt-6 text-center text-sm text-gray-500">
