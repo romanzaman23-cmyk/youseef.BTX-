@@ -9,6 +9,8 @@
     "register": "التسجيل",
     "portal": "بوابة المشارك",
     "admin": "بوابة الإدارة",
+    "participant_badge": "مشارك",
+    "admin_badge": "مسؤول",
     "logout": "تسجيل الخروج"
   },
   "hero": {

@@ -9,6 +9,8 @@
     "register": "Register",
     "portal": "Participant Portal",
     "admin": "Admin Portal",
+    "participant_badge": "Participant",
+    "admin_badge": "Administrator",
     "logout": "Logout"
   },
   "hero": {
