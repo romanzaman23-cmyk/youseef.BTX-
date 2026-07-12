@@ -42,11 +42,15 @@ export async function PATCH(
     });
 
     if (booking.user.notifyEmail) {
-      void sendBookingApprovedEmail({
-        to: booking.user.email,
-        fullName: booking.user.fullName,
-        slot: booking.examSlot,
-      }).catch((err) => console.error("Booking approved email failed:", err));
+      try {
+        await sendBookingApprovedEmail({
+          to: booking.user.email,
+          fullName: booking.user.fullName,
+          slot: booking.examSlot,
+        });
+      } catch (err) {
+        console.error("Booking approved email failed:", err);
+      }
     }
 
     return NextResponse.json({ booking });

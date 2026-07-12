@@ -12,9 +12,10 @@ import { getLoginError } from "@/lib/auth-errors";
 type LoginFormProps = {
   variant?: "participant" | "admin";
   registered?: boolean;
+  emailPending?: boolean;
 };
 
-export function LoginForm({ variant = "participant", registered = false }: LoginFormProps) {
+export function LoginForm({ variant = "participant", registered = false, emailPending = false }: LoginFormProps) {
   const t = useTranslations("auth");
   const locale = useLocale();
   const searchParams = useSearchParams();
@@ -90,8 +91,10 @@ export function LoginForm({ variant = "participant", registered = false }: Login
       </div>
 
       {registered && (
-        <div className="mb-4 p-3 bg-green-50 text-green-700 rounded-lg text-sm">
-          Account created successfully. A welcome email has been sent to your inbox. Your account is pending admin approval.
+        <div className={`mb-4 p-3 rounded-lg text-sm ${emailPending ? "bg-amber-50 text-amber-800" : "bg-green-50 text-green-700"}`}>
+          {emailPending
+            ? "Account created successfully. Welcome email could not be sent yet — admin needs to configure email on the server. Your account is pending approval."
+            : "Account created successfully. A welcome email has been sent to your inbox. Your account is pending admin approval."}
         </div>
       )}
 

@@ -50,6 +50,11 @@ export function RegisterForm() {
       return;
     }
 
+    if (data.emailSent === false) {
+      router.push(`/${locale}/login?registered=true&emailPending=true`);
+      return;
+    }
+
     router.push(`/${locale}/login?registered=true`);
   };
 

@@ -38,11 +38,18 @@ export async function POST(request: Request) {
       },
     });
 
-    void sendWelcomeEmail({ to: email, fullName: data.fullName }).catch((err) =>
-      console.error("Welcome email failed:", err)
-    );
+    let emailSent = false;
+    try {
+      const result = await sendWelcomeEmail({ to: email, fullName: data.fullName });
+      emailSent = result.sent;
+      if (!emailSent) {
+        console.warn("[register] Welcome email skipped — no email provider configured");
+      }
+    } catch (err) {
+      console.error("Welcome email failed:", err);
+    }
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true, emailSent });
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json({ error: "Invalid input" }, { status: 400 });

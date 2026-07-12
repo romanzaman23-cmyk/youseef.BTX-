@@ -9,10 +9,19 @@ export interface SendEmailOptions {
 }
 
 function getFromAddress(): string {
-  return (
-    process.env.EMAIL_FROM ||
-    process.env.SMTP_FROM ||
-    `${BRAND.fullName} <noreply@btx-excellence.com>`
+  if (process.env.EMAIL_FROM || process.env.SMTP_FROM) {
+    return process.env.EMAIL_FROM || process.env.SMTP_FROM!;
+  }
+  if (process.env.RESEND_API_KEY) {
+    return `${BRAND.fullName} <onboarding@resend.dev>`;
+  }
+  return `${BRAND.fullName} <noreply@btx-excellence.com>`;
+}
+
+export function isEmailConfigured(): boolean {
+  return !!(
+    process.env.RESEND_API_KEY ||
+    (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS)
   );
 }
 

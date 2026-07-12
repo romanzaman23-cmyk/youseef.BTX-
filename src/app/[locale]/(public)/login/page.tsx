@@ -4,7 +4,7 @@ import { LoginForm } from "@/components/auth/LoginForm";
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ registered?: string; error?: string }>;
+  searchParams: Promise<{ registered?: string; emailPending?: string; error?: string }>;
 }) {
   const query = await searchParams;
 
@@ -12,7 +12,10 @@ export default async function LoginPage({
     <section className="section-padding bg-muted min-h-[70vh] flex items-center">
       <div className="w-full max-w-7xl mx-auto px-4">
         <Suspense>
-          <LoginForm registered={query.registered === "true"} />
+          <LoginForm
+            registered={query.registered === "true"}
+            emailPending={query.emailPending === "true"}
+          />
         </Suspense>
       </div>
     </section>

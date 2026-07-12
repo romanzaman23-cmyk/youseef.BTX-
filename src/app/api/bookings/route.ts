@@ -57,11 +57,18 @@ export async function POST(request: Request) {
   });
 
   if (user.notifyEmail) {
-    void sendBookingConfirmationEmail({
-      to: user.email,
-      fullName: user.fullName,
-      slot: booking.examSlot,
-    }).catch((err) => console.error("Booking confirmation email failed:", err));
+    try {
+      const result = await sendBookingConfirmationEmail({
+        to: user.email,
+        fullName: user.fullName,
+        slot: booking.examSlot,
+      });
+      if (!result.sent) {
+        console.warn("[booking] Confirmation email skipped — no email provider configured");
+      }
+    } catch (err) {
+      console.error("Booking confirmation email failed:", err);
+    }
   }
 
   return NextResponse.json({ booking });
