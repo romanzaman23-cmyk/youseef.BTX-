@@ -125,6 +125,21 @@ export function SettingsPanel({ thresholds }: { thresholds: Thresholds }) {
           <strong>Emails nahi aa rahi?</strong> Neeche Resend API key paste karein aur Save dabayein — phir test email bhejein.
         </div>
 
+        <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-900 mb-4">
+          <strong>Important — new users ko email bhejne ke liye:</strong>
+          <br />
+          <code className="text-xs">onboarding@resend.dev</code> se sirf <strong>aapka Resend account email</strong>{" "}
+          (romanzaman23@gmail.com) par email jati hai.
+          <br />
+          Doosre users ko welcome email bhejne ke liye{" "}
+          <a href="https://resend.com/domains" target="_blank" rel="noreferrer" className="underline font-medium">
+            resend.com/domains
+          </a>{" "}
+          par apna domain verify karein, phir From Address change karein:
+          <br />
+          <code className="text-xs">BTX Excellence &lt;noreply@yourdomain.com&gt;</code>
+        </div>
+
         <div className="space-y-4 text-sm">
           <p>
             <strong>Status:</strong>{" "}

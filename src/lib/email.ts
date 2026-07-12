@@ -39,6 +39,11 @@ async function sendViaResend(
 
   if (!response.ok) {
     const body = await response.text();
+    if (response.status === 403 && body.includes("resend.dev")) {
+      throw new Error(
+        "Resend testing mode: emails can only go to your Resend account email until you verify your own domain at resend.com/domains"
+      );
+    }
     throw new Error(`Resend error (${response.status}): ${body}`);
   }
 
