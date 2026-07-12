@@ -112,7 +112,8 @@ export function SettingsPanel({ thresholds }: { thresholds: Thresholds }) {
 
   return (
     <div>
-      <h1 className="text-2xl lg:text-3xl font-bold text-btx-primary mb-6">Settings</h1>
+      <h1 className="text-2xl lg:text-3xl font-bold text-btx-primary mb-2">Settings</h1>
+      <p className="text-sm text-gray-500 mb-6">Configure email, exam thresholds, and platform options.</p>
 
       <div className="bg-white rounded-xl p-6 card-shadow max-w-2xl mb-6 border-2 border-amber-200">
         <div className="flex items-center gap-2 mb-2">
