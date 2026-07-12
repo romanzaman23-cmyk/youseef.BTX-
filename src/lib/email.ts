@@ -81,8 +81,9 @@ export async function sendEmail(options: SendEmailOptions): Promise<{ sent: bool
   const from = resolveFromAddress(config.emailFrom, !!config.resendApiKey);
 
   try {
-    if (await sendViaResend(options, config.resendApiKey, from)) return { sent: true };
+    // SMTP (Brevo/Gmail) can send to any user — prefer when configured
     if (await sendViaSmtp(options, config, from)) return { sent: true };
+    if (await sendViaResend(options, config.resendApiKey, from)) return { sent: true };
 
     console.log("[email] No provider configured. Would send:", {
       to: options.to,

@@ -49,6 +49,31 @@ export async function sendWelcomeEmail(params: {
   return sendEmail({ to: params.to, subject, html, text });
 }
 
+export async function sendAdminNewRegistrationNotice(params: {
+  adminEmail: string;
+  userName: string;
+  userEmail: string;
+  welcomeEmailFailed?: boolean;
+}) {
+  const usersUrl = `${getAppBaseUrl()}/en/admin/users`;
+  const subject = `New BTX Registration — ${params.userName}`;
+
+  const html = emailLayout(`
+    <h2 style="color:#0F2744;">New Participant Registered</h2>
+    <p>A new user has registered on BTX:</p>
+    ${infoBox([
+      { label: "Name", value: params.userName },
+      { label: "Email", value: params.userEmail },
+      { label: "Welcome Email", value: params.welcomeEmailFailed ? "FAILED — verify domain in Settings" : "Sent" },
+    ])}
+    ${button(usersUrl, "Review in Admin Panel")}
+  `);
+
+  const text = `New registration: ${params.userName} (${params.userEmail})`;
+
+  return sendEmail({ to: params.adminEmail, subject, html, text });
+}
+
 export async function sendBookingConfirmationEmail(params: {
   to: string;
   fullName: string;

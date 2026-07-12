@@ -8,6 +8,7 @@ import {
   validateResendApiKey,
 } from "@/lib/email-settings";
 import { sendEmail, emailLayout } from "@/lib/email";
+import { canSendToAnyRecipient, isTestingResendFrom } from "@/lib/resend-domains";
 
 export async function GET() {
   const session = await auth();
@@ -17,13 +18,20 @@ export async function GET() {
 
   const config = await getEmailConfig();
   const configured = await isEmailConfiguredAsync();
+  const productionReady = await canSendToAnyRecipient();
 
   return NextResponse.json({
     configured,
+    productionReady,
+    usingTestSender: isTestingResendFrom(config.emailFrom || "onboarding@resend.dev"),
     emailFrom: config.emailFrom || "BTX Excellence <onboarding@resend.dev>",
     hasResendKey: !!config.resendApiKey,
+    hasSmtp: !!(config.smtpHost && config.smtpUser && config.smtpPass),
     resendKeyHint: maskApiKey(config.resendApiKey),
-    provider: config.resendApiKey ? "resend" : config.smtpHost ? "smtp" : "none",
+    smtpHost: config.smtpHost || "",
+    smtpPort: config.smtpPort || "587",
+    smtpUser: config.smtpUser || "",
+    provider: config.smtpHost ? "smtp" : config.resendApiKey ? "resend" : "none",
   });
 }
 
@@ -46,10 +54,15 @@ export async function PUT(request: Request) {
   await saveEmailSettings({
     resendApiKey,
     emailFrom: typeof body.emailFrom === "string" ? body.emailFrom : undefined,
+    smtpHost: typeof body.smtpHost === "string" ? body.smtpHost : undefined,
+    smtpPort: typeof body.smtpPort === "string" ? body.smtpPort : undefined,
+    smtpUser: typeof body.smtpUser === "string" ? body.smtpUser : undefined,
+    smtpPass: typeof body.smtpPass === "string" ? body.smtpPass : undefined,
   });
 
   const configured = await isEmailConfiguredAsync();
-  return NextResponse.json({ success: true, configured });
+  const productionReady = await canSendToAnyRecipient();
+  return NextResponse.json({ success: true, configured, productionReady });
 }
 
 export async function POST(request: Request) {

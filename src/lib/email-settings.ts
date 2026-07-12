@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 const EMAIL_KEYS = {
   resendApiKey: "email.resend_api_key",
   emailFrom: "email.from",
+  resendDomainId: "email.resend_domain_id",
   smtpHost: "email.smtp_host",
   smtpPort: "email.smtp_port",
   smtpUser: "email.smtp_user",
@@ -54,6 +55,11 @@ export async function isEmailConfiguredAsync(): Promise<boolean> {
 export async function saveEmailSettings(data: {
   resendApiKey?: string;
   emailFrom?: string;
+  resendDomainId?: string;
+  smtpHost?: string;
+  smtpPort?: string;
+  smtpUser?: string;
+  smtpPass?: string;
 }) {
   const upserts: Array<{ key: string; value: string }> = [];
 
@@ -63,6 +69,21 @@ export async function saveEmailSettings(data: {
   if (data.emailFrom !== undefined && data.emailFrom.trim()) {
     upserts.push({ key: EMAIL_KEYS.emailFrom, value: data.emailFrom.trim() });
   }
+  if (data.resendDomainId !== undefined && data.resendDomainId.trim()) {
+    upserts.push({ key: EMAIL_KEYS.resendDomainId, value: data.resendDomainId.trim() });
+  }
+  if (data.smtpHost !== undefined && data.smtpHost.trim()) {
+    upserts.push({ key: EMAIL_KEYS.smtpHost, value: data.smtpHost.trim() });
+  }
+  if (data.smtpPort !== undefined && data.smtpPort.trim()) {
+    upserts.push({ key: EMAIL_KEYS.smtpPort, value: data.smtpPort.trim() });
+  }
+  if (data.smtpUser !== undefined && data.smtpUser.trim()) {
+    upserts.push({ key: EMAIL_KEYS.smtpUser, value: data.smtpUser.trim() });
+  }
+  if (data.smtpPass !== undefined && data.smtpPass.trim()) {
+    upserts.push({ key: EMAIL_KEYS.smtpPass, value: data.smtpPass.trim() });
+  }
 
   for (const item of upserts) {
     await prisma.systemSetting.upsert({
@@ -71,6 +92,10 @@ export async function saveEmailSettings(data: {
       update: { value: item.value },
     });
   }
+}
+
+export async function getResendDomainId(): Promise<string> {
+  return readSetting(EMAIL_KEYS.resendDomainId);
 }
 
 export function maskApiKey(key: string): string {

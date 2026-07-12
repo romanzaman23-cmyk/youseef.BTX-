@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
-import { sendWelcomeEmail } from "@/lib/email-notifications";
+import { sendWelcomeEmail, sendAdminNewRegistrationNotice } from "@/lib/email-notifications";
 import { z } from "zod";
 
 const registerSchema = z.object({
@@ -39,17 +39,29 @@ export async function POST(request: Request) {
     });
 
     let emailSent = false;
+    let emailError: string | undefined;
     try {
       const result = await sendWelcomeEmail({ to: email, fullName: data.fullName });
       emailSent = result.sent;
-      if (!emailSent) {
-        console.warn("[register] Welcome email skipped — no email provider configured");
-      }
     } catch (err) {
+      emailError = err instanceof Error ? err.message : "Email failed";
       console.error("Welcome email failed:", err);
     }
 
-    return NextResponse.json({ success: true, emailSent });
+    const admin = await prisma.user.findFirst({
+      where: { role: "ADMIN" },
+      select: { email: true },
+    });
+    if (admin?.email) {
+      void sendAdminNewRegistrationNotice({
+        adminEmail: admin.email,
+        userName: data.fullName,
+        userEmail: email,
+        welcomeEmailFailed: !emailSent,
+      }).catch(console.error);
+    }
+
+    return NextResponse.json({ success: true, emailSent, emailError });
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json({ error: "Invalid input" }, { status: 400 });
