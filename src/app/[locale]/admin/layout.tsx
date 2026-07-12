@@ -1,6 +1,7 @@
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { AdminSidebar } from "@/components/layout/AdminSidebar";
+import { EmailSetupBanner } from "@/components/admin/EmailSetupBanner";
 
 export default async function AdminLayout({
   children,
@@ -24,7 +25,10 @@ export default async function AdminLayout({
     <div className="flex min-h-screen bg-muted">
       <AdminSidebar />
       <main className="flex-1 lg:ml-0 overflow-auto">
-        <div className="p-4 lg:p-8 pt-16 lg:pt-8">{children}</div>
+        <div className="p-4 lg:p-8 pt-16 lg:pt-8">
+          <EmailSetupBanner locale={locale} />
+          {children}
+        </div>
       </main>
     </div>
   );

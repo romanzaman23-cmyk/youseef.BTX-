@@ -1,5 +1,6 @@
 import nodemailer from "nodemailer";
 import { BRAND } from "@/lib/constants";
+import { getEmailConfig } from "@/lib/email-settings";
 
 export interface SendEmailOptions {
   to: string;
@@ -8,25 +9,17 @@ export interface SendEmailOptions {
   text: string;
 }
 
-function getFromAddress(): string {
-  if (process.env.EMAIL_FROM || process.env.SMTP_FROM) {
-    return process.env.EMAIL_FROM || process.env.SMTP_FROM!;
-  }
-  if (process.env.RESEND_API_KEY) {
-    return `${BRAND.fullName} <onboarding@resend.dev>`;
-  }
+function resolveFromAddress(emailFrom: string, hasResend: boolean): string {
+  if (emailFrom) return emailFrom;
+  if (hasResend) return `${BRAND.fullName} <onboarding@resend.dev>`;
   return `${BRAND.fullName} <noreply@btx-excellence.com>`;
 }
 
-export function isEmailConfigured(): boolean {
-  return !!(
-    process.env.RESEND_API_KEY ||
-    (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS)
-  );
-}
-
-async function sendViaResend(options: SendEmailOptions): Promise<boolean> {
-  const apiKey = process.env.RESEND_API_KEY;
+async function sendViaResend(
+  options: SendEmailOptions,
+  apiKey: string,
+  from: string
+): Promise<boolean> {
   if (!apiKey) return false;
 
   const response = await fetch("https://api.resend.com/emails", {
@@ -36,7 +29,7 @@ async function sendViaResend(options: SendEmailOptions): Promise<boolean> {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      from: getFromAddress(),
+      from,
       to: [options.to],
       subject: options.subject,
       html: options.html,
@@ -52,22 +45,23 @@ async function sendViaResend(options: SendEmailOptions): Promise<boolean> {
   return true;
 }
 
-async function sendViaSmtp(options: SendEmailOptions): Promise<boolean> {
-  const host = process.env.SMTP_HOST;
-  const user = process.env.SMTP_USER;
-  const pass = process.env.SMTP_PASS;
-
+async function sendViaSmtp(
+  options: SendEmailOptions,
+  config: { smtpHost: string; smtpPort: string; smtpUser: string; smtpPass: string },
+  from: string
+): Promise<boolean> {
+  const { smtpHost: host, smtpUser: user, smtpPass: pass, smtpPort } = config;
   if (!host || !user || !pass) return false;
 
   const transporter = nodemailer.createTransport({
     host,
-    port: Number(process.env.SMTP_PORT || 587),
+    port: Number(smtpPort || 587),
     secure: process.env.SMTP_SECURE === "true",
     auth: { user, pass },
   });
 
   await transporter.sendMail({
-    from: getFromAddress(),
+    from,
     to: options.to,
     subject: options.subject,
     html: options.html,
@@ -78,9 +72,12 @@ async function sendViaSmtp(options: SendEmailOptions): Promise<boolean> {
 }
 
 export async function sendEmail(options: SendEmailOptions): Promise<{ sent: boolean; dev?: boolean }> {
+  const config = await getEmailConfig();
+  const from = resolveFromAddress(config.emailFrom, !!config.resendApiKey);
+
   try {
-    if (await sendViaResend(options)) return { sent: true };
-    if (await sendViaSmtp(options)) return { sent: true };
+    if (await sendViaResend(options, config.resendApiKey, from)) return { sent: true };
+    if (await sendViaSmtp(options, config, from)) return { sent: true };
 
     console.log("[email] No provider configured. Would send:", {
       to: options.to,
@@ -121,3 +118,6 @@ export function emailLayout(content: string): string {
 </body>
 </html>`;
 }
+
+// Re-export for routes that checked env-only before DB settings existed
+export { isEmailConfiguredAsync as isEmailConfigured } from "@/lib/email-settings";

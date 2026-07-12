@@ -42,6 +42,14 @@ export function UserManagement({ users }: { users: User[] }) {
     router.refresh();
   };
 
+  const resendWelcome = async (userId: string) => {
+    setLoading(userId);
+    const res = await fetch(`/api/admin/users/${userId}/resend-welcome`, { method: "POST" });
+    const data = await res.json();
+    setLoading(null);
+    alert(res.ok ? "Welcome email sent!" : data.error || "Failed to send email");
+  };
+
   return (
     <div>
       <h1 className="text-2xl lg:text-3xl font-bold text-btx-primary mb-6">User Management</h1>
@@ -101,6 +109,14 @@ export function UserManagement({ users }: { users: User[] }) {
                   </td>
                   <td className="p-4">
                     <div className="flex gap-1 flex-wrap">
+                      <button
+                        onClick={() => resendWelcome(user.id)}
+                        disabled={loading === user.id}
+                        className="px-2 py-1 text-xs bg-btx-primary text-white rounded hover:opacity-90"
+                        title="Resend welcome email"
+                      >
+                        Email
+                      </button>
                       {user.status === "PENDING" && (
                         <>
                           <button
