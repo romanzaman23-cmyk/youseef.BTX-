@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { canTakeExam } from "@/lib/competency";
+import { sendBookingConfirmationEmail } from "@/lib/email-notifications";
 
 export async function POST(request: Request) {
   const session = await auth();
@@ -43,6 +44,7 @@ export async function POST(request: Request) {
 
   const booking = await prisma.booking.create({
     data: { userId, examSlotId, status: "PENDING" },
+    include: { examSlot: true },
   });
 
   await prisma.notification.create({
@@ -53,6 +55,14 @@ export async function POST(request: Request) {
       type: "BOOKING",
     },
   });
+
+  if (user.notifyEmail) {
+    void sendBookingConfirmationEmail({
+      to: user.email,
+      fullName: user.fullName,
+      slot: booking.examSlot,
+    }).catch((err) => console.error("Booking confirmation email failed:", err));
+  }
 
   return NextResponse.json({ booking });
 }

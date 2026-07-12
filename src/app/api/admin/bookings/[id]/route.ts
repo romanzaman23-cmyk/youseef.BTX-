@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { generateSecureToken } from "@/lib/utils";
+import { sendBookingApprovedEmail } from "@/lib/email-notifications";
 
 export async function PATCH(
   request: Request,
@@ -25,6 +26,10 @@ export async function PATCH(
         examLink,
         examLinkSent: true,
       },
+      include: {
+        user: { select: { email: true, fullName: true, notifyEmail: true } },
+        examSlot: true,
+      },
     });
 
     await prisma.notification.create({
@@ -35,6 +40,14 @@ export async function PATCH(
         type: "EXAM",
       },
     });
+
+    if (booking.user.notifyEmail) {
+      void sendBookingApprovedEmail({
+        to: booking.user.email,
+        fullName: booking.user.fullName,
+        slot: booking.examSlot,
+      }).catch((err) => console.error("Booking approved email failed:", err));
+    }
 
     return NextResponse.json({ booking });
   }

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
+import { sendWelcomeEmail } from "@/lib/email-notifications";
 import { z } from "zod";
 
 const registerSchema = z.object({
@@ -36,6 +37,10 @@ export async function POST(request: Request) {
         status: "PENDING",
       },
     });
+
+    void sendWelcomeEmail({ to: email, fullName: data.fullName }).catch((err) =>
+      console.error("Welcome email failed:", err)
+    );
 
     return NextResponse.json({ success: true });
   } catch (error) {

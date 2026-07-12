@@ -61,7 +61,7 @@ export function BookingClient({
       return;
     }
 
-    setMessage("Booking submitted! Awaiting admin approval.");
+    setMessage("Booking submitted! A confirmation email has been sent. Awaiting admin approval.");
     router.refresh();
   };
 

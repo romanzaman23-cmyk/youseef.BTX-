@@ -91,7 +91,7 @@ export function LoginForm({ variant = "participant", registered = false }: Login
 
       {registered && (
         <div className="mb-4 p-3 bg-green-50 text-green-700 rounded-lg text-sm">
-          Account created successfully. You can log in now.
+          Account created successfully. A welcome email has been sent to your inbox. Your account is pending admin approval.
         </div>
       )}
 
