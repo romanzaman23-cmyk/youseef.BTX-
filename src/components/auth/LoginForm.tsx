@@ -1,9 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { getCsrfToken } from "next-auth/react";
 import { useTranslations, useLocale } from "next-intl";
 import { LogIn } from "lucide-react";
 import { PasswordInput } from "@/components/ui/PasswordInput";
@@ -20,26 +19,49 @@ export function LoginForm({ variant = "participant", registered = false }: Login
   const searchParams = useSearchParams();
   const isAdmin = variant === "admin";
 
-  const [csrfToken, setCsrfToken] = useState("");
-  const [ready, setReady] = useState(false);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const urlError = getLoginError(searchParams.get("error") ?? undefined);
+  const displayError = error || urlError;
 
-  useEffect(() => {
-    getCsrfToken()
-      .then((token) => {
-        setCsrfToken(token ?? "");
-        setReady(true);
-      })
-      .catch(() => {
-        setReady(true);
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+
+    const form = new FormData(e.currentTarget);
+    const email = String(form.get("email") ?? "").trim().toLowerCase();
+    const password = String(form.get("password") ?? "");
+
+    try {
+      const res = await fetch("/api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "same-origin",
+        body: JSON.stringify({ email, password, locale, variant }),
       });
-  }, []);
 
-  const callbackUrl =
-    typeof window !== "undefined"
-      ? `${window.location.origin}/${locale}/${isAdmin ? "admin/dashboard" : "portal/dashboard"}`
-      : `/${locale}/${isAdmin ? "admin/dashboard" : "portal/dashboard"}`;
+      const data = (await res.json()) as { error?: string; redirect?: string };
+
+      if (!res.ok) {
+        setLoading(false);
+        setError(data.error ?? "Login failed. Please try again.");
+        return;
+      }
+
+      if (data.redirect) {
+        window.location.href = data.redirect;
+        return;
+      }
+
+      setLoading(false);
+      setError("Login failed. Please try again.");
+    } catch {
+      setLoading(false);
+      setError("Network error. Please check your connection and try again.");
+    }
+  };
 
   return (
     <div className="bg-white rounded-xl p-8 card-shadow-lg max-w-md w-full mx-auto">
@@ -58,39 +80,28 @@ export function LoginForm({ variant = "participant", registered = false }: Login
         </div>
       )}
 
-      {urlError && (
-        <div className="mb-4 p-3 bg-red-50 text-red-600 rounded-lg text-sm">{urlError}</div>
+      {displayError && (
+        <div className="mb-4 p-3 bg-red-50 text-red-600 rounded-lg text-sm">{displayError}</div>
       )}
 
-      {!ready ? (
-        <div className="py-8 text-center text-sm text-gray-500">Loading...</div>
-      ) : !csrfToken ? (
-        <div className="mb-4 p-3 bg-red-50 text-red-600 rounded-lg text-sm">
-          Could not start login session. Please refresh the page.
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">{t("email")}</label>
+          <input name="email" type="email" required autoComplete="email" className="input-field" />
         </div>
-      ) : (
-        <form method="post" action="/api/auth/callback/credentials" className="space-y-4">
-          <input type="hidden" name="csrfToken" value={csrfToken} />
-          <input type="hidden" name="callbackUrl" value={callbackUrl} />
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">{t("email")}</label>
-            <input name="email" type="email" required autoComplete="email" className="input-field" />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">{t("password")}</label>
-            <PasswordInput name="password" required autoComplete="current-password" />
-          </div>
-          <div className="text-right">
-            <Link href={`/${locale}/forgot-password`} className="text-sm text-btx-accent hover:underline">
-              {t("forgot_link")}
-            </Link>
-          </div>
-          <button type="submit" className="btn-primary w-full">
-            {t("login_btn")}
-          </button>
-        </form>
-      )}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">{t("password")}</label>
+          <PasswordInput name="password" required autoComplete="current-password" />
+        </div>
+        <div className="text-right">
+          <Link href={`/${locale}/forgot-password`} className="text-sm text-btx-accent hover:underline">
+            {t("forgot_link")}
+          </Link>
+        </div>
+        <button type="submit" disabled={loading} className="btn-primary w-full">
+          {loading ? "..." : t("login_btn")}
+        </button>
+      </form>
 
       {!isAdmin && (
         <p className="mt-6 text-center text-sm text-gray-500">
