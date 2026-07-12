@@ -35,19 +35,21 @@ export function PasswordInput({
         onBlur={(event) => {
           onBlur?.(event);
         }}
-        className={`${className ?? "input-field"} w-full !pr-11`}
+        className={`${className ?? "input-field"} w-full`}
+        style={{ paddingRight: "2.75rem" }}
       />
       <button
         type="button"
         aria-label={visible ? "Hide password" : "Show password"}
         aria-pressed={visible}
-        onMouseDown={(event) => {
+        onClick={(event) => {
           event.preventDefault();
+          event.stopPropagation();
           toggleVisibility();
         }}
-        className="absolute top-1/2 end-2 z-20 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-md text-gray-500 hover:bg-gray-100 hover:text-gray-700"
+        className="absolute top-1/2 right-2 z-20 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-md text-gray-500 hover:bg-gray-100 hover:text-gray-700"
       >
-        {visible ? <EyeOff className="h-5 w-5 pointer-events-none" /> : <Eye className="h-5 w-5 pointer-events-none" />}
+        {visible ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
       </button>
     </div>
   );

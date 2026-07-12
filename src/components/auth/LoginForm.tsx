@@ -1,24 +1,28 @@
-"use client";
-
-import { useActionState } from "react";
 import Link from "next/link";
-import { useTranslations, useLocale } from "next-intl";
+import { getTranslations } from "next-intl/server";
 import { LogIn } from "lucide-react";
 import { PasswordInput } from "@/components/ui/PasswordInput";
-import { loginAction, type LoginState } from "@/actions/login";
+import { getAuthOrigin } from "@/lib/auth-csrf";
 
 type LoginFormProps = {
+  csrfToken: string;
+  locale: string;
   variant?: "participant" | "admin";
   registered?: boolean;
+  error?: string;
 };
 
-const initialState: LoginState = {};
-
-export function LoginForm({ variant = "participant", registered = false }: LoginFormProps) {
-  const t = useTranslations("auth");
-  const locale = useLocale();
+export async function LoginForm({
+  csrfToken,
+  locale,
+  variant = "participant",
+  registered = false,
+  error,
+}: LoginFormProps) {
+  const t = await getTranslations("auth");
   const isAdmin = variant === "admin";
-  const [state, formAction, pending] = useActionState(loginAction, initialState);
+  const origin = await getAuthOrigin();
+  const callbackUrl = `${origin}/${locale}/${isAdmin ? "admin/dashboard" : "portal/dashboard"}`;
 
   return (
     <div className="bg-white rounded-xl p-8 card-shadow-lg max-w-md w-full mx-auto">
@@ -37,13 +41,13 @@ export function LoginForm({ variant = "participant", registered = false }: Login
         </div>
       )}
 
-      {state.error && (
-        <div className="mb-4 p-3 bg-red-50 text-red-600 rounded-lg text-sm">{state.error}</div>
+      {error && (
+        <div className="mb-4 p-3 bg-red-50 text-red-600 rounded-lg text-sm">{error}</div>
       )}
 
-      <form action={formAction} className="space-y-4">
-        <input type="hidden" name="locale" value={locale} />
-        <input type="hidden" name="variant" value={variant} />
+      <form method="post" action="/api/auth/callback/credentials" className="space-y-4">
+        <input type="hidden" name="csrfToken" value={csrfToken} />
+        <input type="hidden" name="callbackUrl" value={callbackUrl} />
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">{t("email")}</label>
@@ -58,8 +62,8 @@ export function LoginForm({ variant = "participant", registered = false }: Login
             {t("forgot_link")}
           </Link>
         </div>
-        <button type="submit" disabled={pending} className="btn-primary w-full">
-          {pending ? "..." : t("login_btn")}
+        <button type="submit" className="btn-primary w-full">
+          {t("login_btn")}
         </button>
       </form>
 

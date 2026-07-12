@@ -1,13 +1,26 @@
-import { Suspense } from "react";
-import { LoginPageClient } from "@/components/auth/LoginPageClient";
+import { LoginForm } from "@/components/auth/LoginForm";
+import { getCsrfToken, getLoginError } from "@/lib/auth-csrf";
 
-export default function LoginPage() {
+export default async function LoginPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ locale: string }>;
+  searchParams: Promise<{ registered?: string; error?: string }>;
+}) {
+  const { locale } = await params;
+  const query = await searchParams;
+  const csrfToken = await getCsrfToken();
+
   return (
     <section className="section-padding bg-muted min-h-[70vh] flex items-center">
       <div className="w-full max-w-7xl mx-auto px-4">
-        <Suspense>
-          <LoginPageClient />
-        </Suspense>
+        <LoginForm
+          csrfToken={csrfToken}
+          locale={locale}
+          registered={query.registered === "true"}
+          error={getLoginError(query.error)}
+        />
       </div>
     </section>
   );
