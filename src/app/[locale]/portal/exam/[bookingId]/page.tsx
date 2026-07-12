@@ -57,6 +57,10 @@ export default async function ExamPage({
       };
     });
 
+  if (orderedQuestions.length === 0) {
+    redirect(`/${locale}/portal/quizzes`);
+  }
+
   const initialAnswers = JSON.parse(examSession.answers || "{}");
 
   return (
