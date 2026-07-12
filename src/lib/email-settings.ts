@@ -78,3 +78,27 @@ export function maskApiKey(key: string): string {
   if (key.length <= 8) return "••••••••";
   return `••••••••${key.slice(-6)}`;
 }
+
+/** Returns true if Resend accepts this API key. */
+export async function validateResendApiKey(apiKey: string): Promise<{ valid: boolean; error?: string }> {
+  const trimmed = apiKey.trim();
+  if (!trimmed.startsWith("re_")) {
+    return { valid: false, error: "API key must start with re_" };
+  }
+
+  try {
+    const response = await fetch("https://api.resend.com/domains", {
+      headers: { Authorization: `Bearer ${trimmed}` },
+    });
+
+    if (response.ok) return { valid: true };
+
+    const body = await response.text();
+    if (response.status === 401 || body.includes("invalid")) {
+      return { valid: false, error: "Invalid API key — create a new key at resend.com/api-keys" };
+    }
+    return { valid: false, error: `Resend error (${response.status}): ${body}` };
+  } catch {
+    return { valid: false, error: "Could not reach Resend. Check your internet connection." };
+  }
+}

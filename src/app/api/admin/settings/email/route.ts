@@ -5,6 +5,7 @@ import {
   isEmailConfiguredAsync,
   maskApiKey,
   saveEmailSettings,
+  validateResendApiKey,
 } from "@/lib/email-settings";
 import { sendEmail, emailLayout } from "@/lib/email";
 
@@ -33,8 +34,17 @@ export async function PUT(request: Request) {
   }
 
   const body = await request.json();
+  const resendApiKey = typeof body.resendApiKey === "string" ? body.resendApiKey.trim() : undefined;
+
+  if (resendApiKey) {
+    const validation = await validateResendApiKey(resendApiKey);
+    if (!validation.valid) {
+      return NextResponse.json({ error: validation.error || "Invalid API key" }, { status: 400 });
+    }
+  }
+
   await saveEmailSettings({
-    resendApiKey: typeof body.resendApiKey === "string" ? body.resendApiKey : undefined,
+    resendApiKey,
     emailFrom: typeof body.emailFrom === "string" ? body.emailFrom : undefined,
   });
 
