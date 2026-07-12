@@ -18,9 +18,14 @@ export async function proxy(request: NextRequest) {
   const isAdmin = adminPaths.some((p) => pathWithoutLocale.startsWith(p));
 
   if (isProtected) {
+    const useSecureCookie =
+      request.nextUrl.protocol === "https:" ||
+      process.env.AUTH_URL?.startsWith("https://") === true;
+
     const token = await getToken({
       req: request,
       secret: process.env.AUTH_SECRET,
+      secureCookie: useSecureCookie,
     });
 
     if (!token) {

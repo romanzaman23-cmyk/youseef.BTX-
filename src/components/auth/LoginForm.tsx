@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { signIn, signOut } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 import { useTranslations, useLocale } from "next-intl";
 import { LogIn } from "lucide-react";
@@ -34,29 +35,43 @@ export function LoginForm({ variant = "participant", registered = false }: Login
     const email = String(form.get("email") ?? "").trim().toLowerCase();
     const password = String(form.get("password") ?? "");
 
+    const redirectTo = `${window.location.origin}/${locale}/${isAdmin ? "admin/dashboard" : "portal/dashboard"}`;
+
     try {
-      const res = await fetch("/api/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "same-origin",
-        body: JSON.stringify({ email, password, locale, variant }),
+      const result = await signIn("credentials", {
+        email,
+        password,
+        redirectTo,
+        redirect: false,
       });
 
-      const data = (await res.json()) as { error?: string; redirect?: string };
-
-      if (!res.ok) {
+      if (!result || result.error || !result.ok) {
         setLoading(false);
-        setError(data.error ?? "Login failed. Please try again.");
+        setError(
+          result?.error === "CredentialsSignin"
+            ? "Invalid email or password"
+            : "Login failed. Please check your email and password."
+        );
         return;
       }
 
-      if (data.redirect) {
-        window.location.href = data.redirect;
-        return;
+      if (isAdmin) {
+        const sessionRes = await fetch("/api/auth/session");
+        const session = await sessionRes.json();
+        if (session?.user?.role !== "ADMIN") {
+          await signOut({ redirect: false });
+          setLoading(false);
+          setError("This login is for administrators only.");
+          return;
+        }
       }
 
-      setLoading(false);
-      setError("Login failed. Please try again.");
+      const destination =
+        !isAdmin && result.url?.includes("/admin/")
+          ? redirectTo
+          : (result.url ?? redirectTo);
+
+      window.location.href = destination;
     } catch {
       setLoading(false);
       setError("Network error. Please check your connection and try again.");
