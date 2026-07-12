@@ -18,7 +18,7 @@ export default async function VerifyByIdPage({
     <>
       <PageHeader
         title="Certificate Verification"
-        subtitle="Scan QR code or enter verification ID to confirm certificate authenticity"
+        subtitle="Official online record — scan QR code to view participant details and exam results"
       />
       <section className="section-padding bg-muted">
         <div className="max-w-3xl mx-auto px-4">

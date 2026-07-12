@@ -11,6 +11,14 @@ const adminPaths = ["/admin"];
 
 export async function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
+
+  const verifyMatch = pathname.match(/^\/verify\/([^/]+)\/?$/);
+  if (verifyMatch) {
+    return NextResponse.redirect(
+      new URL(`/en/verify/${encodeURIComponent(verifyMatch[1])}`, request.url)
+    );
+  }
+
   const locale = routing.locales.find((l) => pathname.startsWith(`/${l}`)) || "en";
   const pathWithoutLocale = pathname.replace(`/${locale}`, "") || "/";
 

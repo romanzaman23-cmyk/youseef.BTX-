@@ -13,6 +13,7 @@ const nextConfig: NextConfig = {
   env: {
     NEXTAUTH_URL: appUrl,
     AUTH_URL: appUrl,
+    NEXT_PUBLIC_APP_URL: appUrl,
   },
   experimental: {
     serverActions: {
